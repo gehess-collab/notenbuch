@@ -133,9 +133,69 @@
     margin-bottom: 16px;
   }
   .card h2 { margin: 0 0 10px; font-size: 1rem; }
-  .card h3 { margin: 14px 0 6px; font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .card h3 {
+    margin: 22px 0 10px;
+    font-size: 0.76rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h3::before {
+    content: "";
+    width: 3px;
+    height: 0.85em;
+    background: var(--accent);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
   .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
   .hint { font-size: 0.78rem; color: var(--muted); }
+
+  /* ---------- Options-Panels (gruppieren zusammengehörige Aktionen) ---------- */
+  .optiongroup {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 10px 0 6px;
+  }
+  .option {
+    flex: 1 1 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fbfaf7;
+    padding: 12px 14px;
+  }
+  .option h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .option .hint { margin: 0; flex: 1; }
+  .option .fields {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .option .fields label { margin-bottom: 3px; }
+  .option .apply { align-self: flex-start; margin-top: 2px; }
+  /* Aktions-Button: klar sichtbar, aber unter dem globalen Speichern-Primary */
+  button.action {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+    font-weight: 600;
+  }
+  button.action:hover { background: #ffe0d3; border-color: var(--accent); }
 
   /* ---------- Tabellen ---------- */
   table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
@@ -327,20 +387,23 @@ function notenschluesselKursstufeFix() {
   return KURSSTUFE_FIX_SCHLUESSEL.map(r => ({ ...r })); // Kopie, damit spätere Bearbeitung die Konstante nicht verändert
 }
 
-function notenschluesselKnick(maxVP, vp1, vp4, vp6) {
-  // Zwei linear interpolierte Segmente: Note 1↔4 zwischen vp1 und vp4, Note 4↔6 zwischen vp4 und vp6.
+function notenschluesselKnick(maxVP, vp1, knickVP, knickNote, vp6) {
+  // Zwei linear interpolierte Segmente mit frei wählbarer Note am Knick (knickNote, Viertelnote):
+  //   Note 1 ↔ knickNote  zwischen vp1 und knickVP  (oberes, meist steileres Segment)
+  //   knickNote ↔ Note 6   zwischen knickVP und vp6  (unteres, meist flacheres Segment)
   // Werte oberhalb vp1 bzw. unterhalb vp6 werden über die normale Notenschlüssel-Suche automatisch
   // auf die beste (1,00) bzw. schlechteste (6,00) Note gedeckelt.
+  const kn = Math.min(5.75, Math.max(1.25, Math.round(knickNote * 4) / 4)); // Knick strikt zwischen 1 und 6 halten
   const rows = [];
   for (let n = 1; n <= 6.001; n += 0.25) {
     const note = Math.round(n * 4) / 4;
     let vp;
-    if (note <= 4) {
-      const anteil = (note - 1) / 3; // 0 bei Note 1, 1 bei Note 4
-      vp = vp1 + anteil * (vp4 - vp1);
+    if (note <= kn) {
+      const anteil = (note - 1) / (kn - 1); // 0 bei Note 1, 1 bei knickNote
+      vp = vp1 + anteil * (knickVP - vp1);
     } else {
-      const anteil = (note - 4) / 2; // 0 bei Note 4, 1 bei Note 6
-      vp = vp4 + anteil * (vp6 - vp4);
+      const anteil = (note - kn) / (6 - kn); // 0 bei knickNote, 1 bei Note 6
+      vp = knickVP + anteil * (vp6 - knickVP);
     }
     rows.push({ note, minVP: Math.round(vp * 2) / 2 });
   }
@@ -965,23 +1028,63 @@ function renderLeistungEingabe(m, kl) {
         <label style="margin-top:4px">max. VP</label><input type="number" data-tmax="${i}" min="0" step="0.5" value="${t.max}">
         <button class="small danger" data-tdel="${i}" style="margin-top:4px">✕</button></div>`;
     });
-    html += `<button class="small" id="btnTA">+ Teilaufgabe</button></div>`;
+    html += `<button class="action small" id="btnTA">+ Teilaufgabe</button></div>`;
 
     /* Notenschlüssel */
     const skalaLabel = l.system === "np" ? "NP" : "Note";
-    const anker = l.knickAnker || { vp1: maxVP, vp4: Math.round(maxVP * 0.45 * 2) / 2, vp6: null };
-    html += `<h3>${skalaLabel === "NP" ? "Punkteschlüssel (Notenpunkte)" : "Notenschlüssel"} <button class="small" id="btnLinear">Linear neu erzeugen (${maxVP} VP)</button></h3>
-      <p class="hint">Erreicht ein Schüler mindestens die angegebenen VP, erhält er die zugehörige ${skalaLabel === "NP" ? "Notenpunktzahl" : "Note"}. Zwischenwerte fallen auf den nächsttieferen Schwellwert. Schwellwerte sind editierbar.</p>
-      ${l.system !== "np" ? `<div class="row" style="align-items:flex-end;margin-bottom:8px">
-        <div><label>VP für Note 1</label><input type="number" step="0.5" id="knickVp1" value="${anker.vp1}" style="width:70px"></div>
-        <div><label>VP für Note 4 (Knick)</label><input type="number" step="0.5" id="knickVp4" value="${anker.vp4}" style="width:70px"></div>
-        <div><label>VP für Note 6 (optional)</label><input type="number" step="0.5" id="knickVp6" placeholder="0" value="${anker.vp6 ?? ""}" style="width:70px"></div>
-        <button class="small" id="btnKnick">Mit Knick erzeugen</button>
-      </div>
-      <p class="hint" style="margin-top:-4px">Zwischen Note 1 und Note 4 wird linear interpoliert (Noten 2, 3), ebenso zwischen Note 4 und Note 6 (Note 5) — mit einem eigenen, meist flacheren Anstieg unterhalb der 4. Werte über „VP für Note 1" bleiben Note 1, Werte unter „VP für Note 6" bleiben Note 6.</p>` : `<div class="row" style="align-items:center;margin-bottom:8px">
-        <button class="small" id="btnKursstufeFix">Kursstufen-Standardschlüssel einsetzen (30 VP, NP 15 ab 28,5)</button>
-        <span class="hint">Aktuelle Teilaufgabensumme: ${maxVP} VP${maxVP !== 30 ? ` — weicht von 30 ab; Schwellwerte danach ggf. manuell anpassen` : ""}</span>
-      </div>`}
+    const anker = l.knickAnker || {};
+    // Anzeigewerte für den Knick ableiten (inkl. Rückwärtskompatibilität zum alten {vp1,vp4,vp6}-Format)
+    const knickNoteVal = anker.knickNote ?? 4;
+    const knickProz = anker.prozent ?? (anker.vp4 != null && maxVP ? Math.round(anker.vp4 / maxVP * 100) : 50);
+    let knickNoteOptionen = "";
+    for (let n = 2; n <= 5.001; n += 0.25) {
+      const note = Math.round(n * 4) / 4;
+      knickNoteOptionen += `<option value="${note}" ${note === knickNoteVal ? "selected" : ""}>${fmt(note, 2)}</option>`;
+    }
+    html += `<h3>${skalaLabel === "NP" ? "Punkteschlüssel (Notenpunkte)" : "Notenschlüssel"}</h3>
+      <p class="hint">Erreicht ein Schüler mindestens die angegebenen VP, erhält er die zugehörige ${skalaLabel === "NP" ? "Notenpunktzahl" : "Note"}. Zwischenwerte fallen auf den nächsttieferen Schwellwert. Wähle eine Methode zum Erzeugen — die Schwellwerte in der Tabelle darunter bleiben danach frei editierbar.</p>
+      <div class="optiongroup">`;
+    if (l.system !== "np") {
+      html += `
+        <div class="option">
+          <h4>Linear</h4>
+          <p class="hint">Gleichmäßige Verteilung der Noten 1–6 über die Gesamtpunktzahl (${maxVP} VP).</p>
+          <button class="action small apply" id="btnLinear">Linear erzeugen</button>
+        </div>
+        <div class="option">
+          <h4>Mit Knick</h4>
+          <p class="hint">Bestehensgrenze frei wählbar: Ab der „Bestanden ab“-Punktzahl gibt es die „Note am Knick“. Ober- und unterhalb wird jeweils linear interpoliert (zwei Geraden mit Knick an dieser Note). Werte über „Note 1“ bleiben 1, unter „Note 6“ bleiben 6.</p>
+          <div class="fields">
+            <div><label>Bestanden ab</label>
+              <span style="white-space:nowrap"><input type="number" min="1" max="99" step="1" id="knickProz" value="${knickProz}" style="width:52px"> %</span>
+              <div class="hint" id="knickVpAnzeige" style="margin-top:3px"></div>
+            </div>
+            <div><label>Note am Knick</label>
+              <select id="knickNote" style="width:80px">${knickNoteOptionen}</select></div>
+          </div>
+          <details style="margin:-2px 0 2px">
+            <summary class="hint" style="cursor:pointer">Erweitert: VP für Note 1 / Note 6</summary>
+            <div class="fields" style="margin-top:6px">
+              <div><label>VP für Note 1</label><input type="number" step="0.5" id="knickVp1" placeholder="${maxVP}" value="${anker.vp1 ?? ""}" style="width:66px"></div>
+              <div><label>VP für Note 6</label><input type="number" step="0.5" id="knickVp6" placeholder="0" value="${anker.vp6 ?? ""}" style="width:66px"></div>
+            </div>
+          </details>
+          <button class="action small apply" id="btnKnick">Mit Knick erzeugen</button>
+        </div>`;
+    } else {
+      html += `
+        <div class="option">
+          <h4>Linear</h4>
+          <p class="hint">Notenpunkte 0–15 gleichmäßig über die Gesamtpunktzahl (${maxVP} VP) verteilt.</p>
+          <button class="action small apply" id="btnLinear">Linear erzeugen</button>
+        </div>
+        <div class="option">
+          <h4>Kursstufen-Standard</h4>
+          <p class="hint">Feste Tabelle: 30 VP, NP 15 ab 28,5 VP.${maxVP !== 30 ? ` <strong>Aktuell ${maxVP} VP</strong> — weicht von 30 ab; Schwellwerte danach ggf. manuell anpassen.` : ""}</p>
+          <button class="action small apply" id="btnKursstufeFix">Standard einsetzen</button>
+        </div>`;
+    }
+    html += `</div>
       <div class="table-scroll"><table><tr><th>${skalaLabel}</th>${l.schluessel.map(r => `<th class="num">${l.system === "np" ? r.note : fmt(r.note, 2)}</th>`).join("")}</tr>
       <tr><th>ab VP</th>${l.schluessel.map((r, i) => `<td class="num"><input type="number" step="0.5" data-svp="${i}" value="${r.minVP}"></td>`).join("")}</tr></table></div>`;
 
@@ -1034,18 +1137,34 @@ function renderLeistungEingabe(m, kl) {
         markiereAenderung(); renderMain();
       }
     };
+    const knickProzInp = $("#knickProz");
+    const knickVpAnzeige = $("#knickVpAnzeige");
+    if (knickProzInp && knickVpAnzeige) {
+      const zeigeVP = () => {
+        const p = parseFloat(knickProzInp.value);
+        const mv = maxVPvon(l);
+        knickVpAnzeige.textContent = isNaN(p) ? "" : "≈ " + fmt(Math.round((mv * p / 100) * 2) / 2, 1) + " VP";
+      };
+      zeigeVP();
+      knickProzInp.oninput = zeigeVP;
+    }
     const btnKnick = $("#btnKnick");
     if (btnKnick) btnKnick.onclick = () => {
-      const vp1 = parseFloat($("#knickVp1").value);
-      const vp4 = parseFloat($("#knickVp4").value);
+      const maxVP = maxVPvon(l);
+      const proz = parseFloat($("#knickProz").value);
+      const knickNote = Math.round(parseFloat($("#knickNote").value) * 4) / 4;
+      const vp1Roh = $("#knickVp1").value.trim();
+      const vp1 = vp1Roh === "" ? maxVP : parseFloat(vp1Roh);
       const vp6Roh = $("#knickVp6").value.trim();
       const vp6 = vp6Roh === "" ? 0 : parseFloat(vp6Roh);
-      if ([vp1, vp4].some(v => isNaN(v))) return alert("Bitte für Note 1 und Note 4 eine Zahl eingeben.");
-      if (isNaN(vp6)) return alert("VP für Note 6 muss eine Zahl sein oder leer bleiben (dann 0).");
-      if (!(vp1 > vp4 && vp4 > vp6)) return alert("Die Reihenfolge muss VP(Note 1) > VP(Note 4) > VP(Note 6) sein.");
+      if (isNaN(proz) || proz <= 0 || proz >= 100) return alert("„Bestanden ab“ muss zwischen 1 und 99 % liegen.");
+      if (isNaN(knickNote) || knickNote <= 1 || knickNote >= 6) return alert("Die Note am Knick muss zwischen 1 und 6 liegen.");
+      if (isNaN(vp1) || isNaN(vp6)) return alert("VP für Note 1 und Note 6 müssen Zahlen sein (oder leer für Standard).");
+      const knickVP = Math.round((maxVP * proz / 100) * 2) / 2;
+      if (!(vp1 > knickVP && knickVP > vp6)) return alert(`Die Reihenfolge muss VP(Note 1) > Knickpunktzahl (${fmt(knickVP, 1)} VP) > VP(Note 6) sein.`);
       if (!confirm("Notenschlüssel mit Knick erzeugen? Manuelle Anpassungen gehen verloren.")) return;
-      l.schluessel = notenschluesselKnick(maxVPvon(l), vp1, vp4, vp6);
-      l.knickAnker = { vp1, vp4, vp6 };
+      l.schluessel = notenschluesselKnick(maxVP, vp1, knickVP, knickNote, vp6);
+      l.knickAnker = { prozent: proz, knickVP, knickNote, vp1, vp6 };
       markiereAenderung(); renderMain();
     };
     const btnKursstufeFix = $("#btnKursstufeFix");
@@ -1172,7 +1291,7 @@ function renderEinstellungen(m, kl) {
     <p class="hint">Häkchen = Kategorie wird in dieser Klasse genutzt (erscheint dann bei „Art" beim Anlegen einer Leistung). „Eigene Gewichtung" gibt der Kategorie ein festes %-Gewicht; „Zählt zu …" faltet sie stattdessen vollständig in eine andere Kategorie (z. B. Test zusammen wie eine zusätzliche KA, ohne eigenes Gewicht). Kategorien ohne eingetragene Noten werden für den jeweiligen Schüler automatisch ignoriert; die übrigen Gewichte werden dann anteilig hochgerechnet.</p>
     <div>${kl.kategorien.map(k => kategorieZeile(kl, k)).join("")}</div>
     <div class="row" style="margin-top:10px;align-items:center">
-      <button class="small" id="btnKatAdd">+ Kategorie hinzufügen</button>
+      <button class="action small" id="btnKatAdd">+ Kategorie hinzufügen</button>
       <span><label>Summe (eigene, aktive Kategorien)</label>
         <strong class="num" id="gewSumme" style="color:${summe === 100 ? "var(--good)" : "var(--bad)"}">${summe} %</strong></span>
     </div>
