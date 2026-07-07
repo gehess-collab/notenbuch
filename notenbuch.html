@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notenbuch</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+CjxwYXRoIGZpbGw9IiNmZjU1MWQiIGQ9Ik0xMiAzIDEgOGwxMSA1IDExLTUtMTEtNXoiLz4KPHBhdGggZmlsbD0iIzIzMjcyZCIgb3BhY2l0eT0iMC45IiBkPSJNNSAxMC42djQuMWMwIDEuNCAzLjEgMy4zIDcgMy4zczctMS45IDctMy4zdi00LjFsLTcgMy4yLTctMy4yeiIvPgo8cmVjdCBmaWxsPSIjMjMyNzJkIiB4PSIyMS4yIiB5PSI4IiB3aWR0aD0iMS40IiBoZWlnaHQ9IjYuNiIvPgo8L3N2Zz4=">
+<style>
+  :root {
+    --bg: #f6f5f2;
+    --surface: #ffffff;
+    --ink: #23272d;
+    --muted: #6f7680;
+    --line: #e4e2dc;
+    --accent: #ff551d;
+    --accent-soft: #fff0ea;
+    --good: #1a7f4b;
+    --mid: #b07d10;
+    --bad: #c23434;
+    --warn-bg: #fff7e0;
+    --radius: 10px;
+    font-size: 15px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.45;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Kopf ---------- */
+  header {
+    background: var(--surface);
+    border-bottom: 3px solid var(--accent);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  header h1 {
+    font-size: 1.15rem;
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header h1 .akzent { color: var(--accent); }
+  .file-status {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .file-status.dirty { color: var(--bad); font-weight: 600; }
+  .spacer { flex: 1; }
+
+  /* ---------- Buttons ---------- */
+  button {
+    font: inherit;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+  button.primary:hover { background: #e64812; }
+  button.small { padding: 3px 8px; font-size: 0.8rem; }
+  button.danger { color: var(--bad); }
+  button.danger:hover { border-color: var(--bad); }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  input, select, textarea {
+    font: inherit;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 8px;
+    background: #fff;
+    color: var(--ink);
+  }
+  input[type="number"] { width: 72px; text-align: right; }
+  label { font-size: 0.82rem; color: var(--muted); display: block; margin-bottom: 2px; }
+
+  /* ---------- Navigation ---------- */
+  nav.klassen {
+    display: flex;
+    gap: 6px;
+    padding: 10px 18px 0;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  nav.klassen button.tab {
+    border-radius: 8px 8px 0 0;
+    border-bottom: none;
+    background: #edece7;
+  }
+  nav.klassen button.tab.active {
+    background: var(--surface);
+    font-weight: 700;
+    border-top: 3px solid var(--accent);
+  }
+  nav.views {
+    display: flex;
+    gap: 4px;
+    padding: 8px 18px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.views button { border: none; background: transparent; color: var(--muted); padding: 5px 10px; border-radius: 6px; }
+  nav.views button.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+
+  main { padding: 16px 18px 60px; max-width: 1400px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .card h2 { margin: 0 0 10px; font-size: 1rem; }
+  .card h3 { margin: 14px 0 6px; font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+  .hint { font-size: 0.78rem; color: var(--muted); }
+
+  /* ---------- Tabellen ---------- */
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--line); padding: 4px 8px; text-align: left; }
+  th { background: #f1f0ec; font-weight: 600; font-size: 0.8rem; }
+  td.num, th.num { text-align: right; }
+  tr:hover td { background: #fbfaf7; }
+  .table-scroll { overflow-x: auto; }
+  td input[type="number"] { width: 68px; border: 1px solid var(--line); background: #fbfaf8; border-radius: 5px; }
+  td input[type="number"]:hover { border-color: var(--accent); }
+  td input[type="number"]:focus { border-color: var(--accent); background: #fff; }
+
+  /* ---------- Notenchips ---------- */
+  .grade {
+    display: inline-block;
+    min-width: 44px;
+    text-align: center;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    background: #eee;
+  }
+  .g1 { background: #dff3e6; color: var(--good); }
+  .g2 { background: #e8f2da; color: #4c7a1e; }
+  .g3 { background: #fdf3d7; color: var(--mid); }
+  .g4 { background: #fde8d2; color: #a85d12; }
+  .g5 { background: #fbdcd6; color: var(--bad); }
+  .g6 { background: #f6c9c9; color: #8f1f1f; }
+  .borderline { box-shadow: 0 0 0 2px var(--accent); }
+  .dec { font-size: 0.75rem; color: var(--muted); margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 40px 10px;
+  }
+
+  dialog {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    max-width: 560px;
+    width: 92%;
+    padding: 18px;
+  }
+  dialog::backdrop { background: rgba(30,30,30,0.35); }
+
+  .leistung-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .leistung-item:last-child { border-bottom: none; }
+  .typ-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .footerbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    padding: 6px 18px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .card { animation: fade 0.15s ease-out; }
+    @keyframes fade { from { opacity: 0.6; } to { opacity: 1; } }
+  }
+  .print-only { display: none; }
+  @media print {
+    header, nav.klassen, nav.views, .footerbar, #exportBar { display: none !important; }
+    body { background: #fff; }
+    main { padding: 0; }
+    .card { border: none; padding: 0; margin-bottom: 0; }
+    .print-only { display: block; margin-bottom: 12px; }
+    table { font-size: 10px; }
+    .hint { display: none; }
+    .table-scroll { overflow: visible; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0">
+    <path style="fill:var(--accent)" d="M12 3 1 8l11 5 11-5-11-5z"/>
+    <path style="fill:var(--ink)" opacity="0.85" d="M5 10.6v4.1c0 1.4 3.1 3.3 7 3.3s7-1.9 7-3.3v-4.1l-7 3.2-7-3.2z"/>
+    <rect style="fill:var(--ink)" x="21.2" y="8" width="1.4" height="6.6"/>
+  </svg>
+  <h1><span class="akzent">Noten</span>buch</h1>
+  <span class="file-status" id="fileStatus">Keine Datei geöffnet</span>
+  <span class="spacer"></span>
+  <button id="btnOpen">Datei öffnen</button>
+  <button id="btnSaveAs">Speichern unter …</button>
+  <button class="primary" id="btnSave">Speichern</button>
+</header>
+
+<nav class="klassen" id="klassenNav"></nav>
+<nav class="views" id="viewNav" style="display:none">
+  <button data-view="uebersicht">Übersicht</button>
+  <button data-view="leistungen">Leistungen</button>
+  <button data-view="schueler">Schüler</button>
+  <button data-view="einstellungen">Gewichtung</button>
+</nav>
+
+<main id="main"></main>
+
+<div class="footerbar">
+  <span>Alle Daten liegen ausschließlich in deiner lokalen Datei.</span>
+  <span id="autosaveInfo"></span>
+</div>
+
+<script>
+"use strict";
+
+/* ================= Zustand ================= */
+
+// Kategorien sind ab jetzt pro Klasse konfigurierbar (kl.kategorien), nicht mehr global fest.
+function kategorieLabel(kl, id) {
+  const k = (kl.kategorien || []).find(x => x.id === id);
+  return k ? k.label : id;
+}
+function kategorieVon(kl, id) {
+  // Liefert die effektive Top-Level-Kategorie, in die eine Leistung dieses Typs einfließt
+  // (identisch mit id, außer die Kategorie ist zu einer anderen "gefaltet")
+  const k = (kl.kategorien || []).find(x => x.id === id);
+  if (!k) return id;
+  return k.faltetZu || k.id;
+}
+function aktiveKategorien(kl) {
+  return (kl.kategorien || []).filter(k => k.aktiv);
+}
+
+let state = neuerZustand();
+let fileHandle = null;
+let dirty = false;
+let aktiveKlasse = null;
+let aktiveView = "uebersicht";
+let offeneLeistung = null; // Leistungs-ID im Eingabemodus
+
+function neuerZustand() {
+  return { version: 1, klassen: [] };
+}
+
+function uid() { return Math.random().toString(36).slice(2, 10); }
+
+function neueKlasse(name, fach, schuljahr, notensystem) {
+  return {
+    id: uid(), name, fach, schuljahr,
+    notensystem: notensystem === "np" ? "np" : "note", // "note" (1–6, Sek I) | "np" (0–15, Kursstufe)
+    schueler: [],
+    leistungen: [],
+    overrides: {},
+    kategorien: [
+      { id: "ka", label: "Klassenarbeit", aktiv: true, faltetZu: null, gewicht: 60 },
+      { id: "test", label: "Test", aktiv: true, faltetZu: "ka", gewicht: 0 },
+      { id: "muendlich", label: "Mündlich", aktiv: true, faltetZu: null, gewicht: 40 },
+      { id: "gfs", label: "GFS", aktiv: true, faltetZu: "ka", gewicht: 0 }
+    ],
+    einstellungen: {}
+  };
+}
+
+/* ================= Notenlogik ================= */
+
+// Feste Kursstufen-Punktetabelle: gilt für Klausuren mit 30 VP maximal, NP 15 bereits ab 28,5 VP.
+// Keine Skalierung auf andere Maximalpunktzahlen — bei Abweichungen die Schwellwerte manuell anpassen.
+const KURSSTUFE_FIX_SCHLUESSEL = [
+  { note: 0, minVP: 0 }, { note: 1, minVP: 5.5 }, { note: 2, minVP: 7.5 }, { note: 3, minVP: 9.5 },
+  { note: 4, minVP: 11.5 }, { note: 5, minVP: 13.5 }, { note: 6, minVP: 15 }, { note: 7, minVP: 16.5 },
+  { note: 8, minVP: 18 }, { note: 9, minVP: 19.5 }, { note: 10, minVP: 21 }, { note: 11, minVP: 22.5 },
+  { note: 12, minVP: 24 }, { note: 13, minVP: 25.5 }, { note: 14, minVP: 27 }, { note: 15, minVP: 28.5 }
+];
+function notenschluesselKursstufeFix() {
+  return KURSSTUFE_FIX_SCHLUESSEL.map(r => ({ ...r })); // Kopie, damit spätere Bearbeitung die Konstante nicht verändert
+}
+
+function notenschluesselKnick(maxVP, vp1, vp4, vp6) {
+  // Zwei linear interpolierte Segmente: Note 1↔4 zwischen vp1 und vp4, Note 4↔6 zwischen vp4 und vp6.
+  // Werte oberhalb vp1 bzw. unterhalb vp6 werden über die normale Notenschlüssel-Suche automatisch
+  // auf die beste (1,00) bzw. schlechteste (6,00) Note gedeckelt.
+  const rows = [];
+  for (let n = 1; n <= 6.001; n += 0.25) {
+    const note = Math.round(n * 4) / 4;
+    let vp;
+    if (note <= 4) {
+      const anteil = (note - 1) / 3; // 0 bei Note 1, 1 bei Note 4
+      vp = vp1 + anteil * (vp4 - vp1);
+    } else {
+      const anteil = (note - 4) / 2; // 0 bei Note 4, 1 bei Note 6
+      vp = vp4 + anteil * (vp6 - vp4);
+    }
+    rows.push({ note, minVP: Math.round(vp * 2) / 2 });
+  }
+  return rows;
+}
+
+function notenschluesselLinear(maxVP, system) {
+  const sys = system === "np" ? "np" : "note";
+  const rows = [];
+  if (sys === "np") {
+    // Notenpunkte 15 (beste) … 0 (schlechteste); linear; mehr Punkte = mehr VP nötig
+    for (let np = 15; np >= 0; np--) {
+      rows.push({ note: np, minVP: Math.round((maxVP * np / 15) * 2) / 2 });
+    }
+  } else {
+    // Viertelnotenschritte 1,00 … 6,00; linear; Schwellwert abgerundet auf ganze/halbe VP
+    for (let n = 1; n <= 6.001; n += 0.25) {
+      const note = Math.round(n * 4) / 4;
+      const vp = maxVP * (6 - note) / 5;
+      rows.push({ note, minVP: Math.round(vp * 2) / 2 });
+    }
+  }
+  return rows;
+}
+
+function noteAusSchluessel(schluessel, vp, system) {
+  const sys = system === "np" ? "np" : "note";
+  if (sys === "np") {
+    // beste NP (größter Wert), deren Schwellwert erreicht wird
+    let beste = 0;
+    for (const r of schluessel) {
+      if (vp >= r.minVP && r.note > beste) beste = r.note;
+    }
+    return beste;
+  }
+  // beste Note (kleinster Wert), deren Schwellwert erreicht wird
+  let beste = 6;
+  for (const r of schluessel) {
+    if (vp >= r.minVP && r.note < beste) beste = r.note;
+  }
+  return beste;
+}
+
+function leistungsNote(l, sid) {
+  const e = l.noten[sid];
+  if (!e) return null;
+  if (l.modus === "note") {
+    return (typeof e.note === "number" && !isNaN(e.note)) ? e.note : null;
+  }
+  if (!Array.isArray(e.vp)) return null;
+  const eingegeben = e.vp.some(v => typeof v === "number" && !isNaN(v));
+  if (!eingegeben) return null;
+  const sum = e.vp.reduce((a, v) => a + (typeof v === "number" && !isNaN(v) ? v : 0), 0);
+  return noteAusSchluessel(l.schluessel, sum, l.system);
+}
+
+function vpSumme(l, sid) {
+  const e = l.noten[sid];
+  if (!e || !Array.isArray(e.vp)) return 0;
+  return e.vp.reduce((a, v) => a + (typeof v === "number" && !isNaN(v) ? v : 0), 0);
+}
+
+function kategorieSchnitt(kl, sid, kategorie, hj) {
+  // hj: 1 | 2 | null (ganzes Jahr) — gewichtetes Mittel innerhalb der Kategorie
+  // Gefaltete Kategorien (z. B. GFS oder Test bei "zählt zu KA") zählen automatisch mit
+  let sumW = 0, sumN = 0;
+  for (const l of kl.leistungen) {
+    if (kategorieVon(kl, l.typ) !== kategorie) continue;
+    if (hj && l.halbjahr !== hj) continue;
+    const n = leistungsNote(l, sid);
+    if (n === null) continue; // kein Eintrag = für diesen Schüler nicht vorgesehen, zählt nicht als 0
+    const w = l.gewicht || 1;
+    sumW += w;
+    sumN += n * w;
+  }
+  return sumW > 0 ? sumN / sumW : null;
+}
+
+function gesamtDezimal(kl, sid, hj) {
+  let sumW = 0, sumN = 0;
+  for (const kat of (kl.kategorien || [])) {
+    if (!kat.aktiv || kat.faltetZu) continue; // nur eigene, aktive Top-Level-Kategorien tragen ein Gewicht
+    const avg = kategorieSchnitt(kl, sid, kat.id, hj);
+    if (avg === null) continue;
+    const w = kat.gewicht || 0;
+    sumW += w;
+    sumN += avg * w;
+  }
+  return sumW > 0 ? sumN / sumW : null;
+}
+
+function jahresDezimal(kl, sid) {
+  return gesamtDezimal(kl, sid, null);
+}
+
+const rundeViertel = x => Math.round(x * 4) / 4;
+const rundeGanz = x => Math.min(6, Math.max(1, Math.round(x)));
+const rundeNP = x => Math.min(15, Math.max(0, Math.round(x)));
+const istGrenzfall = x => { const f = Math.abs(x - Math.round(x)); return f >= 0.4 && f <= 0.6 || Math.abs(x % 1 - 0.5) < 0.1; };
+// Zuordnung NP → Notenband 1–6, damit dieselben Farbklassen (g1…g6) wiederverwendet werden können
+const NP_BAND = [6,5,5,5,4,4,4,3,3,3,2,2,2,1,1,1];
+
+function fmt(x, nk = 2) {
+  if (x === null || x === undefined || isNaN(x)) return "–";
+  return x.toFixed(nk).replace(".", ",");
+}
+function gradeClass(x, system) {
+  if (x === null || x === undefined || isNaN(x)) return "";
+  if (system === "np") {
+    const np = Math.min(15, Math.max(0, Math.round(x)));
+    return "g" + NP_BAND[np];
+  }
+  return "g" + Math.min(6, Math.max(1, Math.round(x)));
+}
+function chip(x, nk, borderline = false, system) {
+  if (x === null) return '<span class="grade">–</span>';
+  return `<span class="grade ${gradeClass(x, system)} ${borderline ? "borderline" : ""}">${fmt(x, nk)}</span>`;
+}
+
+/* ================= Datei-Handling ================= */
+
+const hatFSA = "showOpenFilePicker" in window;
+const dateiTypen = [{ description: "Notenbuch-Datei", accept: { "application/json": [".json"] } }];
+
+function setDirty(d) {
+  dirty = d;
+  const st = document.getElementById("fileStatus");
+  const name = fileHandle ? fileHandle.name : "Keine Datei geöffnet";
+  st.textContent = name + (d ? " — ungespeicherte Änderungen" : (fileHandle ? " — gespeichert" : ""));
+  st.classList.toggle("dirty", d);
+}
+
+function migriere(st) {
+  for (const kl of st.klassen || []) {
+    if (!kl.notensystem) kl.notensystem = "note";
+    for (const l of kl.leistungen || []) {
+      if (!l.system) l.system = kl.notensystem;
+    }
+    if (!kl.kategorien) {
+      // Alte Dateien hatten ein festes gewichte-Objekt in kl.einstellungen statt kl.kategorien
+      const g = (kl.einstellungen && kl.einstellungen.gewichte) || { ka: 60, test: 10, muendlich: 30 };
+      kl.kategorien = [
+        { id: "ka", label: "Klassenarbeit", aktiv: true, faltetZu: null, gewicht: g.ka ?? 60 },
+        { id: "test", label: "Test", aktiv: true, faltetZu: null, gewicht: g.test ?? 10 },
+        { id: "muendlich", label: "Mündlich", aktiv: true, faltetZu: null, gewicht: g.muendlich ?? 30 },
+        { id: "gfs", label: "GFS", aktiv: true, faltetZu: "ka", gewicht: 0 }
+      ];
+      if (kl.einstellungen) delete kl.einstellungen.gewichte;
+    }
+  }
+  return st;
+}
+
+async function oeffnen() {
+  try {
+    if (hatFSA) {
+      const [h] = await window.showOpenFilePicker({ types: dateiTypen });
+      fileHandle = h;
+      const file = await h.getFile();
+      state = migriere(JSON.parse(await file.text()));
+    } else {
+      const inp = document.createElement("input");
+      inp.type = "file"; inp.accept = ".json";
+      const text = await new Promise((res, rej) => {
+        inp.onchange = () => {
+          const f = inp.files[0];
+          if (!f) return rej();
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.readAsText(f);
+        };
+        inp.click();
+      });
+      state = migriere(JSON.parse(text));
+    }
+    aktiveKlasse = state.klassen[0]?.id ?? null;
+    offeneLeistung = null;
+    setDirty(false);
+    renderAll();
+  } catch (e) { if (e && e.name !== "AbortError") alert("Datei konnte nicht gelesen werden."); }
+}
+
+async function speichern(alsNeu = false) {
+  const json = JSON.stringify(state, null, 1);
+  try {
+    if (hatFSA) {
+      if (!fileHandle || alsNeu) {
+        fileHandle = await window.showSaveFilePicker({
+          types: dateiTypen, suggestedName: "notenbuch.json"
+        });
+      }
+      const w = await fileHandle.createWritable();
+      await w.write(json);
+      await w.close();
+      setDirty(false);
+    } else {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+      a.download = "notenbuch.json";
+      a.click();
+      setDirty(false);
+    }
+  } catch (e) { if (e && e.name !== "AbortError") alert("Speichern fehlgeschlagen."); }
+}
+
+let autosaveTimer = null;
+function markiereAenderung() {
+  setDirty(true);
+  if (hatFSA && fileHandle) {
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(async () => {
+      await speichern();
+      document.getElementById("autosaveInfo").textContent =
+        "Automatisch gespeichert um " + new Date().toLocaleTimeString("de-DE");
+    }, 1500);
+  }
+}
+
+window.addEventListener("beforeunload", e => {
+  if (dirty) { e.preventDefault(); e.returnValue = ""; }
+});
+
+/* ================= Rendering ================= */
+
+const $ = sel => document.querySelector(sel);
+const klasse = () => state.klassen.find(k => k.id === aktiveKlasse) || null;
+
+function renderAll() {
+  renderKlassenNav();
+  renderViewNav();
+  renderMain();
+}
+
+function renderKlassenNav() {
+  const nav = $("#klassenNav");
+  nav.innerHTML = "";
+  for (const k of state.klassen) {
+    const b = document.createElement("button");
+    b.className = "tab" + (k.id === aktiveKlasse ? " active" : "");
+    b.textContent = `${k.name} · ${k.fach}${k.notensystem === "np" ? " (NP)" : ""}`;
+    b.onclick = () => { aktiveKlasse = k.id; offeneLeistung = null; renderAll(); };
+    nav.appendChild(b);
+  }
+  const add = document.createElement("button");
+  add.className = "small";
+  add.textContent = "+ Klasse";
+  add.onclick = klasseDialog;
+  nav.appendChild(add);
+}
+
+function renderViewNav() {
+  const nav = $("#viewNav");
+  nav.style.display = klasse() ? "flex" : "none";
+  nav.querySelectorAll("button").forEach(b => {
+    b.classList.toggle("active", b.dataset.view === aktiveView);
+    b.onclick = () => { aktiveView = b.dataset.view; offeneLeistung = null; renderAll(); };
+  });
+}
+
+function renderMain() {
+  const m = $("#main");
+  const kl = klasse();
+  if (!kl) {
+    m.innerHTML = `<div class="empty">
+      <p><strong>Noch keine Klasse angelegt.</strong></p>
+      <p>Lege oben eine Klasse an oder öffne eine bestehende Notenbuch-Datei.</p>
+    </div>`;
+    return;
+  }
+  if (offeneLeistung) return renderLeistungEingabe(m, kl);
+  if (aktiveView === "uebersicht") return renderUebersicht(m, kl);
+  if (aktiveView === "leistungen") return renderLeistungen(m, kl);
+  if (aktiveView === "schueler") return renderSchueler(m, kl);
+  if (aktiveView === "einstellungen") return renderEinstellungen(m, kl);
+}
+
+/* ---------- Übersicht ---------- */
+
+function csvEscape(v) {
+  const s = String(v ?? "");
+  if (s.includes(";") || s.includes('"') || s.includes("\n")) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function exportCSV(kl) {
+  const leistNachTyp = {};
+  for (const k of aktiveKategorien(kl)) leistNachTyp[k.id] = kl.leistungen.filter(l => l.typ === k.id);
+  const leistungenFlat = [];
+  const header = ["Schüler/in"];
+  for (const k of aktiveKategorien(kl)) {
+    for (const l of leistNachTyp[k.id]) {
+      header.push(`${l.titel} (HJ${l.halbjahr})`);
+      leistungenFlat.push(l);
+    }
+  }
+  if (kl.notensystem === "np") {
+    header.push("HJ1 Endnote (NP)", "HJ1 Dezimal", "HJ2 Endnote (NP)", "HJ2 Dezimal");
+  } else {
+    header.push("HJ1 (Viertelnote)", "HJ1 Dezimal", "HJ2 (Viertelnote)", "HJ2 Dezimal", "Jahr (ganze Note)", "Jahr Dezimal");
+  }
+
+  const rows = [header];
+  for (const s of kl.schueler) {
+    const row = [s.name];
+    for (const l of leistungenFlat) {
+      const n = leistungsNote(l, s.id);
+      row.push(n === null ? "" : fmt(n, l.system === "np" ? 0 : 2));
+    }
+    const ov = kl.overrides[s.id] || {};
+    const h1 = gesamtDezimal(kl, s.id, 1);
+    const h2 = gesamtDezimal(kl, s.id, 2);
+    if (kl.notensystem === "np") {
+      const h1Wert = ov.hj1 != null ? ov.hj1 : (h1 !== null ? rundeNP(h1) : null);
+      const h2Wert = ov.hj2 != null ? ov.hj2 : (h2 !== null ? rundeNP(h2) : null);
+      row.push(h1Wert === null ? "" : fmt(h1Wert, 0), h1 === null ? "" : fmt(h1, 2));
+      row.push(h2Wert === null ? "" : fmt(h2Wert, 0), h2 === null ? "" : fmt(h2, 2));
+    } else {
+      const j = jahresDezimal(kl, s.id);
+      const h1Wert = ov.hj1 != null ? ov.hj1 : (h1 !== null ? rundeViertel(h1) : null);
+      const h2Wert = ov.hj2 != null ? ov.hj2 : (h2 !== null ? rundeViertel(h2) : null);
+      const jWert = ov.jahr != null ? ov.jahr : (j !== null ? rundeGanz(j) : null);
+      row.push(h1Wert === null ? "" : fmt(h1Wert, 2), h1 === null ? "" : fmt(h1, 2));
+      row.push(h2Wert === null ? "" : fmt(h2Wert, 2), h2 === null ? "" : fmt(h2, 2));
+      row.push(jWert === null ? "" : fmt(jWert, 0), j === null ? "" : fmt(j, 2));
+    }
+    rows.push(row);
+  }
+
+  const csv = rows.map(r => r.map(csvEscape).join(";")).join("\r\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${kl.name}_${kl.fach}_Noten.csv`.replace(/\s+/g, "_");
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function renderUebersicht(m, kl) {
+  if (kl.schueler.length === 0) {
+    m.innerHTML = `<div class="empty">Noch keine Schüler. Trage sie unter <strong>Schüler</strong> ein.</div>`;
+    return;
+  }
+  const leistNachTyp = {};
+  for (const k of aktiveKategorien(kl)) leistNachTyp[k.id] = kl.leistungen.filter(l => l.typ === k.id);
+
+  let kopf1 = "<tr><th rowspan='2'>Schüler/in</th>";
+  let kopf2 = "<tr>";
+  for (const k of aktiveKategorien(kl)) {
+    const ls = leistNachTyp[k.id];
+    if (ls.length === 0) continue;
+    const zielId = kategorieVon(kl, k.id);
+    const label = k.faltetZu
+      ? `${k.label} (zählt zu ${kategorieLabel(kl, zielId)})`
+      : `${k.label} (${k.gewicht} %)`;
+    kopf1 += `<th colspan="${ls.length}">${label}</th>`;
+    for (const l of ls) kopf2 += `<th title="${escapeHtml(l.titel)} · HJ${l.halbjahr} · Faktor ${l.gewicht}">${escapeHtml(kurz(l.titel))}<br><span style="font-weight:400;color:var(--muted)">HJ${l.halbjahr}</span></th>`;
+  }
+  kopf1 += kl.notensystem === "np"
+    ? "<th rowspan='2'>HJ 1<br><span style='font-weight:400'>Endnote (NP)</span></th>" +
+      "<th rowspan='2'>HJ 2<br><span style='font-weight:400'>Endnote (NP)</span></th></tr>"
+    : "<th rowspan='2'>HJ 1<br><span style='font-weight:400'>Viertelnote</span></th>" +
+      "<th rowspan='2'>HJ 2<br><span style='font-weight:400'>Viertelnote</span></th>" +
+      "<th rowspan='2'>Jahr<br><span style='font-weight:400'>ganze Note</span></th></tr>";
+  kopf2 += "</tr>";
+
+  let rows = "";
+  for (const s of kl.schueler) {
+    rows += `<tr><td><strong>${escapeHtml(s.name)}</strong></td>`;
+    for (const k of aktiveKategorien(kl)) {
+      for (const l of leistNachTyp[k.id]) {
+        const n = leistungsNote(l, s.id);
+        rows += `<td class="num">${n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, l.system === "np" ? 0 : 2)}</span>`}</td>`;
+      }
+    }
+    const ov = kl.overrides[s.id] || {};
+    const h1 = gesamtDezimal(kl, s.id, 1);
+    const h2 = gesamtDezimal(kl, s.id, 2);
+    rows += zellHalbjahr(kl, s.id, 1, h1, ov.hj1);
+    rows += zellHalbjahr(kl, s.id, 2, h2, ov.hj2);
+    if (kl.notensystem !== "np") {
+      const j = jahresDezimal(kl, s.id);
+      rows += zellJahr(s.id, j, ov.jahr);
+    }
+    rows += "</tr>";
+  }
+
+  const hinweis = kl.notensystem === "np"
+    ? `Kleine graue Zahl = Dezimal-NP (2 Nachkommastellen). In der Kursstufe ist jedes Halbjahr eine eigenständige Endnote — es wird nichts zu einer Jahresnote verrechnet. Orange umrandet = Grenzfall bei x,5 — anklicken, um die NP pädagogisch festzulegen. Festgelegte Werte sind mit • markiert. Gefaltete Kategorien (z. B. GFS) zählen automatisch zu ihrer Zielkategorie; fehlt bei einem Schüler ein Eintrag, gilt das als „nicht vorgesehen", nicht als 0 NP.`
+    : `Kleine graue Zahl = Dezimalnote (2 Nachkommastellen). Orange umrandet = Grenzfall bei x,5 — Note anklicken, um sie pädagogisch festzulegen. Festgelegte Noten sind mit • markiert. Gefaltete Kategorien (z. B. GFS) zählen automatisch zu ihrer Zielkategorie; fehlt bei einem Schüler ein Eintrag, gilt das als „nicht vorgesehen", nicht als 0.`;
+
+  m.innerHTML = `<div class="card">
+    <div class="print-only"><strong>${escapeHtml(kl.name)} ${escapeHtml(kl.fach)} — ${escapeHtml(kl.schuljahr)}</strong>${kl.notensystem === "np" ? " · Kursstufe (NP)" : ""}
+      <div style="font-size:0.8em;color:#666">Stand: ${new Date().toLocaleDateString("de-DE")}</div></div>
+    <div class="row" id="exportBar" style="margin-bottom:10px">
+      <button class="small" id="btnCSV">CSV exportieren</button>
+      <button class="small" id="btnPDF">Drucken / PDF</button>
+    </div>
+    <h2>Gesamtübersicht — ${escapeHtml(kl.name)} ${escapeHtml(kl.fach)} (${escapeHtml(kl.schuljahr)})${kl.notensystem === "np" ? " · Kursstufe (NP)" : ""}</h2>
+    <p class="hint">${hinweis}</p>
+    <div class="table-scroll"><table class="num">${kopf1}${kopf2}${rows}</table></div>
+  </div>`;
+
+  m.querySelectorAll("[data-ov]").forEach(el => {
+    el.onclick = () => overrideDialog(el.dataset.ov, el.dataset.sid);
+  });
+  $("#btnCSV").onclick = () => exportCSV(kl);
+  $("#btnPDF").onclick = () => window.print();
+}
+
+function zellHalbjahr(kl, sid, hj, dez, override) {
+  if (dez === null && override == null) return "<td class='num'>–</td>";
+  const sys = kl.notensystem;
+  const wert = override != null ? override : (sys === "np" ? rundeNP(dez) : rundeViertel(dez));
+  const mark = override != null ? " •" : "";
+  const grenz = override == null && dez !== null && sys === "np" && istGrenzfall(dez);
+  return `<td class="num" style="cursor:pointer" data-ov="hj${hj}" data-sid="${sid}" title="Anklicken zum Festlegen">
+    <span class="grade ${gradeClass(wert, sys)} ${grenz ? "borderline" : ""}">${fmt(wert, sys === "np" ? 0 : 2)}${mark}</span>
+    <span class="dec">${fmt(dez, 2)}</span></td>`;
+}
+
+function zellJahr(sid, dez, override) {
+  if (dez === null && override == null) return "<td class='num'>–</td>";
+  const auto = dez !== null ? rundeGanz(dez) : null;
+  const wert = override != null ? override : auto;
+  const grenz = override == null && dez !== null && istGrenzfall(dez);
+  const mark = override != null ? " •" : "";
+  return `<td class="num" style="cursor:pointer" data-ov="jahr" data-sid="${sid}" title="Anklicken zum Festlegen">
+    ${chip(wert, 0, grenz)}${mark ? "<strong>" + mark + "</strong>" : ""}
+    <span class="dec">${fmt(dez, 2)}</span></td>`;
+}
+
+function overrideDialog(feld, sid) {
+  const kl = klasse();
+  const sys = kl.notensystem;
+  const s = kl.schueler.find(x => x.id === sid);
+  const aktuell = (kl.overrides[sid] || {})[feld];
+  const label = feld === "jahr"
+    ? "Jahresnote (ganze Note)"
+    : sys === "np"
+      ? `Endnote HJ ${feld === "hj1" ? "1" : "2"} (Notenpunkte 0–15)`
+      : `Halbjahresnote ${feld === "hj1" ? "1" : "2"} (Viertelnote)`;
+  const eingabe = prompt(
+    `${s.name} — ${label} festlegen.\nLeer lassen = automatische Berechnung verwenden.`,
+    aktuell != null ? String(aktuell).replace(".", ",") : ""
+  );
+  if (eingabe === null) return;
+  kl.overrides[sid] = kl.overrides[sid] || {};
+  if (eingabe.trim() === "") {
+    delete kl.overrides[sid][feld];
+  } else {
+    const v = parseFloat(eingabe.replace(",", "."));
+    const maxVal = sys === "np" ? 15 : 6;
+    const minVal = sys === "np" ? 0 : 1;
+    if (isNaN(v) || v < minVal || v > maxVal) return alert(`Bitte einen Wert zwischen ${minVal} und ${maxVal} eingeben.`);
+    if (feld === "jahr") kl.overrides[sid][feld] = Math.round(v);
+    else kl.overrides[sid][feld] = sys === "np" ? Math.round(v) : rundeViertel(v);
+  }
+  markiereAenderung();
+  renderMain();
+}
+
+/* ---------- Leistungen ---------- */
+
+function renderLeistungen(m, kl) {
+  let items = "";
+  const sortiert = [...kl.leistungen].sort((a, b) => (a.datum || "").localeCompare(b.datum || ""));
+  for (const l of sortiert) {
+    const anz = kl.schueler.filter(s => leistungsNote(l, s.id) !== null).length;
+    items += `<div class="leistung-item">
+      <span class="typ-badge">${kategorieLabel(kl, l.typ)}</span>
+      <strong>${escapeHtml(l.titel)}</strong>
+      <span class="hint">HJ${l.halbjahr} · ${l.datum || "ohne Datum"} · Faktor ${l.gewicht} · ${l.modus === "punkte" ? maxVPvon(l) + " VP" : "direkte Note"} · ${anz}/${kl.schueler.length} erfasst</span>
+      <span class="spacer"></span>
+      <button class="small primary" data-open="${l.id}">Noten eingeben</button>
+      <button class="small" data-edit="${l.id}">Bearbeiten</button>
+      <button class="small danger" data-del="${l.id}">Löschen</button>
+    </div>`;
+  }
+  m.innerHTML = `<div class="card">
+    <h2>Leistungen</h2>
+    ${items || "<p class='hint'>Noch keine Leistungen angelegt.</p>"}
+    <p style="margin-top:12px"><button class="primary" id="btnNeueLeistung">+ Neue Leistung</button></p>
+  </div>`;
+  $("#btnNeueLeistung").onclick = () => leistungDialog(null);
+  m.querySelectorAll("[data-open]").forEach(b => b.onclick = () => { offeneLeistung = b.dataset.open; renderMain(); });
+  m.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => leistungDialog(b.dataset.edit));
+  m.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    const l = kl.leistungen.find(x => x.id === b.dataset.del);
+    if (confirm(`„${l.titel}" mit allen eingetragenen Noten löschen?`)) {
+      kl.leistungen = kl.leistungen.filter(x => x.id !== l.id);
+      markiereAenderung(); renderMain();
+    }
+  });
+}
+
+function maxVPvon(l) {
+  return l.teilaufgaben.reduce((a, t) => a + (t.max || 0), 0);
+}
+
+function leistungDialog(id) {
+  const kl = klasse();
+  const l = id ? kl.leistungen.find(x => x.id === id) : null;
+  const d = document.createElement("dialog");
+  d.innerHTML = `
+    <h2 style="margin-top:0">${l ? "Leistung bearbeiten" : "Neue Leistung"}</h2>
+    <div class="row">
+      <div style="flex:1;min-width:200px"><label>Titel</label>
+        <input id="dTitel" style="width:100%" value="${l ? escapeHtml(l.titel) : ""}" placeholder="z. B. KA 1 – Kurzgeschichten"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div><label>Art</label>
+        <select id="dTyp">${aktiveKategorien(kl).map(k =>
+          `<option value="${k.id}" ${l && l.typ === k.id ? "selected" : ""}>${escapeHtml(k.label)}</option>`).join("")}</select></div>
+      <div><label>Halbjahr</label>
+        <select id="dHJ"><option value="1" ${!l || l.halbjahr === 1 ? "selected" : ""}>HJ 1</option>
+        <option value="2" ${l && l.halbjahr === 2 ? "selected" : ""}>HJ 2</option></select></div>
+      <div><label>Datum</label><input type="date" id="dDatum" value="${l ? (l.datum || "") : ""}"></div>
+      <div><label>Faktor</label><input type="number" id="dGewicht" min="0.25" step="0.25" value="${l ? l.gewicht : 1}"></div>
+      <div><label>Erfassung</label>
+        <select id="dModus">
+          <option value="punkte" ${!l || l.modus === "punkte" ? "selected" : ""}>Punkte + Teilaufgaben</option>
+          <option value="note" ${l && l.modus === "note" ? "selected" : ""}>Note direkt</option>
+        </select></div>
+    </div>
+    <p class="hint" style="margin-top:10px">Der Faktor gewichtet diese Leistung innerhalb ihrer Kategorie (z. B. Test mit Faktor 0,5 zählt halb so viel wie einer mit 1). Neue Kategorien und ob eine Kategorie zu einer anderen "gefaltet" wird, legst du unter „Gewichtung" fest. Notensystem dieser Klasse: <strong>${kl.notensystem === "np" ? "Notenpunkte 0–15 (Kursstufe)" : "Note 1–6"}</strong>.</p>
+    <p class="hint" id="dFaltHinweis" style="margin-top:6px"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button id="dAbbr">Abbrechen</button>
+      <button class="primary" id="dOk">${l ? "Übernehmen" : "Anlegen"}</button>
+    </div>`;
+  document.body.appendChild(d);
+  d.showModal();
+
+  const faltHinweisAktualisieren = () => {
+    const typId = d.querySelector("#dTyp").value;
+    const k = kl.kategorien.find(x => x.id === typId);
+    const el = d.querySelector("#dFaltHinweis");
+    if (k && k.faltetZu && k.id !== "gfs") {
+      const ziel = kategorieLabel(kl, k.faltetZu);
+      el.innerHTML = `Diese Art zählt zur Kategorie „${escapeHtml(ziel)}". Damit mehrere „${escapeHtml(k.label)}"-Leistungen zusammen wie <strong>eine</strong> zusätzliche „${escapeHtml(ziel)}" zählen (statt wie mehrere volle), setze den Faktor auf <strong>1 ÷ Anzahl geplanter „${escapeHtml(k.label)}"-Leistungen</strong> — z. B. Faktor 0,25 bei 4 geplanten.`;
+    } else {
+      el.innerHTML = "";
+    }
+  };
+  const faktorVorbelegungAktualisieren = () => {
+    if (l) return; // beim Bearbeiten bestehenden Faktor nicht überschreiben
+    const typId = d.querySelector("#dTyp").value;
+    const k = kl.kategorien.find(x => x.id === typId);
+    const faktorInput = d.querySelector("#dGewicht");
+    faktorInput.value = (k && k.faltetZu && k.id !== "gfs") ? "0.25" : "1";
+  };
+  faltHinweisAktualisieren();
+  faktorVorbelegungAktualisieren();
+  d.querySelector("#dTyp").onchange = () => { faltHinweisAktualisieren(); faktorVorbelegungAktualisieren(); };
+
+  d.querySelector("#dAbbr").onclick = () => { d.close(); d.remove(); };
+  d.querySelector("#dOk").onclick = () => {
+    const titel = d.querySelector("#dTitel").value.trim();
+    if (!titel) return alert("Bitte einen Titel angeben.");
+    const modus = d.querySelector("#dModus").value;
+    if (l) {
+      Object.assign(l, {
+        titel, typ: d.querySelector("#dTyp").value,
+        halbjahr: +d.querySelector("#dHJ").value,
+        datum: d.querySelector("#dDatum").value,
+        gewicht: parseFloat(d.querySelector("#dGewicht").value) || 1,
+        modus
+      });
+      if (modus === "punkte" && l.teilaufgaben.length === 0) {
+        l.teilaufgaben = [{ name: "Aufgabe 1", max: 10 }];
+        l.schluessel = notenschluesselLinear(10, l.system);
+      }
+    } else {
+      const neu = {
+        id: uid(), titel,
+        typ: d.querySelector("#dTyp").value,
+        halbjahr: +d.querySelector("#dHJ").value,
+        datum: d.querySelector("#dDatum").value,
+        gewicht: parseFloat(d.querySelector("#dGewicht").value) || 1,
+        modus,
+        system: kl.notensystem || "note",
+        teilaufgaben: modus === "punkte" ? [{ name: "Aufgabe 1", max: 10 }] : [],
+        schluessel: modus === "punkte" ? notenschluesselLinear(10, kl.notensystem) : [],
+        noten: {}
+      };
+      kl.leistungen.push(neu);
+      offeneLeistung = neu.id;
+    }
+    markiereAenderung();
+    d.close(); d.remove();
+    renderMain();
+  };
+}
+
+/* ---------- Eingabemaske einer Leistung ---------- */
+
+function renderLeistungEingabe(m, kl) {
+  const l = kl.leistungen.find(x => x.id === offeneLeistung);
+  if (!l) { offeneLeistung = null; return renderMain(); }
+  const maxVP = maxVPvon(l);
+
+  let html = `<div class="card">
+    <div class="row" style="align-items:center">
+      <button class="small" id="btnZurueck">← Zurück</button>
+      <h2 style="margin:0">${escapeHtml(l.titel)} <span class="typ-badge">${kategorieLabel(kl, l.typ)}</span> <span class="hint">HJ${l.halbjahr} · Faktor ${l.gewicht}</span></h2>
+    </div>
+    ${(() => {
+      const eigeneKat = (kl.kategorien || []).find(k => k.id === l.typ);
+      if (eigeneKat && eigeneKat.faltetZu) {
+        return `<p class="hint">Optionale Leistung: Zählt zu „${escapeHtml(kategorieLabel(kl, eigeneKat.faltetZu))}". Schüler/innen ohne Eintrag gelten als „nicht vorgesehen" und werden dort einfach nicht mitgerechnet — kein Fehlversuch.</p>`;
+      }
+      return "";
+    })()}`;
+
+  if (l.modus === "punkte") {
+    /* Teilaufgaben */
+    html += `<h3>Teilaufgaben (gesamt ${maxVP} VP)</h3><div class="row">`;
+    l.teilaufgaben.forEach((t, i) => {
+      html += `<div><label>Name</label><input data-tname="${i}" value="${escapeHtml(t.name)}" style="width:110px">
+        <label style="margin-top:4px">max. VP</label><input type="number" data-tmax="${i}" min="0" step="0.5" value="${t.max}">
+        <button class="small danger" data-tdel="${i}" style="margin-top:4px">✕</button></div>`;
+    });
+    html += `<button class="small" id="btnTA">+ Teilaufgabe</button></div>`;
+
+    /* Notenschlüssel */
+    const skalaLabel = l.system === "np" ? "NP" : "Note";
+    const anker = l.knickAnker || { vp1: maxVP, vp4: Math.round(maxVP * 0.45 * 2) / 2, vp6: null };
+    html += `<h3>${skalaLabel === "NP" ? "Punkteschlüssel (Notenpunkte)" : "Notenschlüssel"} <button class="small" id="btnLinear">Linear neu erzeugen (${maxVP} VP)</button></h3>
+      <p class="hint">Erreicht ein Schüler mindestens die angegebenen VP, erhält er die zugehörige ${skalaLabel === "NP" ? "Notenpunktzahl" : "Note"}. Zwischenwerte fallen auf den nächsttieferen Schwellwert. Schwellwerte sind editierbar.</p>
+      ${l.system !== "np" ? `<div class="row" style="align-items:flex-end;margin-bottom:8px">
+        <div><label>VP für Note 1</label><input type="number" step="0.5" id="knickVp1" value="${anker.vp1}" style="width:70px"></div>
+        <div><label>VP für Note 4 (Knick)</label><input type="number" step="0.5" id="knickVp4" value="${anker.vp4}" style="width:70px"></div>
+        <div><label>VP für Note 6 (optional)</label><input type="number" step="0.5" id="knickVp6" placeholder="0" value="${anker.vp6 ?? ""}" style="width:70px"></div>
+        <button class="small" id="btnKnick">Mit Knick erzeugen</button>
+      </div>
+      <p class="hint" style="margin-top:-4px">Zwischen Note 1 und Note 4 wird linear interpoliert (Noten 2, 3), ebenso zwischen Note 4 und Note 6 (Note 5) — mit einem eigenen, meist flacheren Anstieg unterhalb der 4. Werte über „VP für Note 1" bleiben Note 1, Werte unter „VP für Note 6" bleiben Note 6.</p>` : `<div class="row" style="align-items:center;margin-bottom:8px">
+        <button class="small" id="btnKursstufeFix">Kursstufen-Standardschlüssel einsetzen (30 VP, NP 15 ab 28,5)</button>
+        <span class="hint">Aktuelle Teilaufgabensumme: ${maxVP} VP${maxVP !== 30 ? ` — weicht von 30 ab; Schwellwerte danach ggf. manuell anpassen` : ""}</span>
+      </div>`}
+      <div class="table-scroll"><table><tr><th>${skalaLabel}</th>${l.schluessel.map(r => `<th class="num">${l.system === "np" ? r.note : fmt(r.note, 2)}</th>`).join("")}</tr>
+      <tr><th>ab VP</th>${l.schluessel.map((r, i) => `<td class="num"><input type="number" step="0.5" data-svp="${i}" value="${r.minVP}"></td>`).join("")}</tr></table></div>`;
+
+    /* Punkteeingabe */
+    html += `<h3>Punkteeingabe</h3><div class="table-scroll"><table>
+      <tr><th>Schüler/in</th>${l.teilaufgaben.map(t => `<th class="num">${escapeHtml(t.name)}<br><span style="font-weight:400">/ ${t.max}</span></th>`).join("")}
+      <th class="num">Σ VP</th><th class="num">${skalaLabel}</th></tr>`;
+    for (const s of kl.schueler) {
+      const e = l.noten[s.id] || { vp: [] };
+      const sum = vpSumme(l, s.id);
+      const n = leistungsNote(l, s.id);
+      html += `<tr><td>${escapeHtml(s.name)}</td>`;
+      l.teilaufgaben.forEach((t, i) => {
+        const v = Array.isArray(e.vp) && typeof e.vp[i] === "number" ? e.vp[i] : "";
+        html += `<td class="num"><input type="number" min="0" max="${t.max}" step="0.5" data-vp="${s.id}:${i}" value="${v}"></td>`;
+      });
+      html += `<td class="num"><strong id="sum-${s.id}">${n === null ? "–" : fmt(sum, 1)}</strong></td>
+        <td class="num" id="note-${s.id}">${n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, l.system === "np" ? 0 : 2)}</span>`}</td></tr>`;
+    }
+    html += `</table></div>`;
+  } else {
+    /* Direkte Noteneingabe */
+    const npModus = l.system === "np";
+    html += `<h3>${npModus ? "Noteneingabe (Notenpunkte 0–15)" : "Noteneingabe (1,00 – 6,00, Viertelnoten empfohlen)"}</h3>
+      <div class="table-scroll"><table><tr><th>Schüler/in</th><th class="num">${npModus ? "NP" : "Note"}</th></tr>`;
+    for (const s of kl.schueler) {
+      const e = l.noten[s.id];
+      const v = e && typeof e.note === "number" ? e.note : "";
+      html += `<tr><td>${escapeHtml(s.name)}</td>
+        <td class="num">${npModus
+          ? `<input type="number" min="0" max="15" step="1" data-note="${s.id}" value="${v}">`
+          : `<input type="number" min="1" max="6" step="0.25" data-note="${s.id}" value="${v}">`}</td></tr>`;
+    }
+    html += `</table></div>`;
+  }
+  html += `</div>`;
+  m.innerHTML = html;
+
+  $("#btnZurueck").onclick = () => { offeneLeistung = null; renderMain(); };
+
+  if (l.modus === "punkte") {
+    $("#btnTA").onclick = () => {
+      l.teilaufgaben.push({ name: "Aufgabe " + (l.teilaufgaben.length + 1), max: 5 });
+      markiereAenderung(); renderMain();
+    };
+    $("#btnLinear").onclick = () => {
+      if (confirm("Notenschlüssel linear neu erzeugen? Manuelle Anpassungen gehen verloren.")) {
+        l.schluessel = notenschluesselLinear(maxVPvon(l), l.system);
+        delete l.knickAnker;
+        markiereAenderung(); renderMain();
+      }
+    };
+    const btnKnick = $("#btnKnick");
+    if (btnKnick) btnKnick.onclick = () => {
+      const vp1 = parseFloat($("#knickVp1").value);
+      const vp4 = parseFloat($("#knickVp4").value);
+      const vp6Roh = $("#knickVp6").value.trim();
+      const vp6 = vp6Roh === "" ? 0 : parseFloat(vp6Roh);
+      if ([vp1, vp4].some(v => isNaN(v))) return alert("Bitte für Note 1 und Note 4 eine Zahl eingeben.");
+      if (isNaN(vp6)) return alert("VP für Note 6 muss eine Zahl sein oder leer bleiben (dann 0).");
+      if (!(vp1 > vp4 && vp4 > vp6)) return alert("Die Reihenfolge muss VP(Note 1) > VP(Note 4) > VP(Note 6) sein.");
+      if (!confirm("Notenschlüssel mit Knick erzeugen? Manuelle Anpassungen gehen verloren.")) return;
+      l.schluessel = notenschluesselKnick(maxVPvon(l), vp1, vp4, vp6);
+      l.knickAnker = { vp1, vp4, vp6 };
+      markiereAenderung(); renderMain();
+    };
+    const btnKursstufeFix = $("#btnKursstufeFix");
+    if (btnKursstufeFix) btnKursstufeFix.onclick = () => {
+      if (!confirm("Kursstufen-Standardschlüssel (30 VP, NP 15 ab 28,5) einsetzen? Manuelle Anpassungen gehen verloren.")) return;
+      l.schluessel = notenschluesselKursstufeFix();
+      markiereAenderung(); renderMain();
+    };
+    m.querySelectorAll("[data-tname]").forEach(inp => inp.onchange = () => {
+      l.teilaufgaben[+inp.dataset.tname].name = inp.value; markiereAenderung(); renderMain();
+    });
+    m.querySelectorAll("[data-tmax]").forEach(inp => inp.onchange = () => {
+      l.teilaufgaben[+inp.dataset.tmax].max = parseFloat(inp.value) || 0; markiereAenderung(); renderMain();
+    });
+    m.querySelectorAll("[data-tdel]").forEach(b => b.onclick = () => {
+      const i = +b.dataset.tdel;
+      if (!confirm(`Teilaufgabe „${l.teilaufgaben[i].name}" löschen? Eingetragene Punkte dieser Spalte entfallen.`)) return;
+      l.teilaufgaben.splice(i, 1);
+      for (const sid of Object.keys(l.noten)) {
+        if (Array.isArray(l.noten[sid].vp)) l.noten[sid].vp.splice(i, 1);
+      }
+      markiereAenderung(); renderMain();
+    });
+    m.querySelectorAll("[data-svp]").forEach(inp => inp.onchange = () => {
+      l.schluessel[+inp.dataset.svp].minVP = parseFloat(inp.value) || 0;
+      markiereAenderung(); renderMain();
+    });
+    m.querySelectorAll("[data-vp]").forEach(inp => inp.oninput = () => {
+      const [sid, iStr] = inp.dataset.vp.split(":");
+      const i = +iStr;
+      l.noten[sid] = l.noten[sid] || { vp: [] };
+      const v = inp.value === "" ? null : parseFloat(inp.value);
+      l.noten[sid].vp[i] = (v === null || isNaN(v)) ? null : v;
+      const n = leistungsNote(l, sid);
+      document.getElementById("sum-" + sid).textContent = n === null ? "–" : fmt(vpSumme(l, sid), 1);
+      document.getElementById("note-" + sid).innerHTML = n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, l.system === "np" ? 0 : 2)}</span>`;
+      markiereAenderung();
+    });
+  } else {
+    m.querySelectorAll("[data-note]").forEach(inp => inp.onchange = () => {
+      const sid = inp.dataset.note;
+      const v = inp.value === "" ? null : parseFloat(inp.value);
+      const maxVal = l.system === "np" ? 15 : 6;
+      const minVal = l.system === "np" ? 0 : 1;
+      if (v !== null && (isNaN(v) || v < minVal || v > maxVal)) { alert(`Wert zwischen ${minVal} und ${maxVal}.`); inp.value = ""; return; }
+      if (v === null) delete l.noten[sid];
+      else l.noten[sid] = { note: v };
+      markiereAenderung();
+    });
+  }
+}
+
+/* ---------- Schüler ---------- */
+
+function renderSchueler(m, kl) {
+  let rows = kl.schueler.map((s, i) => `<tr>
+    <td class="num">${i + 1}</td>
+    <td><input data-sname="${s.id}" value="${escapeHtml(s.name)}" style="width:100%;border-color:transparent;background:transparent"></td>
+    <td><button class="small danger" data-sdel="${s.id}">Entfernen</button></td></tr>`).join("");
+  m.innerHTML = `<div class="card">
+    <h2>Schülerliste (${kl.schueler.length})</h2>
+    <div class="table-scroll"><table style="max-width:560px">
+      <tr><th style="width:36px">#</th><th>Name</th><th style="width:110px"></th></tr>${rows}
+    </table></div>
+    <h3>Hinzufügen</h3>
+    <p class="hint">Ein Name pro Zeile, z. B. „Müller, Anna". Die Liste wird alphabetisch sortiert.</p>
+    <textarea id="sNeu" rows="4" style="width:100%;max-width:560px" placeholder="Müller, Anna&#10;Schmidt, Ben"></textarea><br>
+    <button class="primary" id="btnSAdd" style="margin-top:8px">Hinzufügen</button>
+  </div>`;
+  $("#btnSAdd").onclick = () => {
+    const namen = $("#sNeu").value.split("\n").map(x => x.trim()).filter(Boolean);
+    for (const n of namen) kl.schueler.push({ id: uid(), name: n });
+    kl.schueler.sort((a, b) => a.name.localeCompare(b.name, "de"));
+    markiereAenderung(); renderMain();
+  };
+  m.querySelectorAll("[data-sname]").forEach(inp => inp.onchange = () => {
+    const s = kl.schueler.find(x => x.id === inp.dataset.sname);
+    s.name = inp.value.trim();
+    markiereAenderung();
+  });
+  m.querySelectorAll("[data-sdel]").forEach(b => b.onclick = () => {
+    const s = kl.schueler.find(x => x.id === b.dataset.sdel);
+    if (!confirm(`${s.name} entfernen? Alle Noten dieser Person entfallen.`)) return;
+    kl.schueler = kl.schueler.filter(x => x.id !== s.id);
+    for (const l of kl.leistungen) delete l.noten[s.id];
+    delete kl.overrides[s.id];
+    markiereAenderung(); renderMain();
+  });
+}
+
+/* ---------- Gewichtung / Einstellungen ---------- */
+
+function kategorieZeile(kl, k) {
+  const zielOptionen = kl.kategorien.filter(x => x.id !== k.id && !x.faltetZu);
+  const zielLabel = k.faltetZu ? kategorieLabel(kl, k.faltetZu) : null;
+  return `<div class="row" style="align-items:center;border-bottom:1px solid var(--line);padding:8px 4px;margin:0" data-katzeile="${k.id}">
+    <input type="checkbox" data-kat-aktiv="${k.id}" ${k.aktiv ? "checked" : ""} title="Kategorie in dieser Klasse nutzen">
+    <input data-kat-label="${k.id}" value="${escapeHtml(k.label)}" style="width:150px">
+    <select data-kat-modus="${k.id}" style="width:165px">
+      <option value="eigen" ${!k.faltetZu ? "selected" : ""}>Eigene Gewichtung</option>
+      <option value="falten" ${k.faltetZu ? "selected" : ""}>Zählt zu …</option>
+    </select>
+    <span data-kat-gewicht-wrap="${k.id}" style="${k.faltetZu ? "display:none" : ""}">
+      <input type="number" min="0" max="100" data-kat-gewicht="${k.id}" value="${k.gewicht ?? 0}" style="width:64px"> %</span>
+    <select data-kat-ziel="${k.id}" style="${k.faltetZu ? "" : "display:none"}">
+      ${zielOptionen.map(o => `<option value="${o.id}" ${k.faltetZu === o.id ? "selected" : ""}>${escapeHtml(o.label)}</option>`).join("")}
+    </select>
+    <button class="small danger" data-kat-del="${k.id}">✕</button>
+  </div>
+  ${(k.faltetZu && k.id !== "gfs") ? `<p class="hint" style="margin:2px 0 10px 26px">
+    Mehrere „${escapeHtml(k.label)}"-Leistungen zählen nur dann zusammen wie <strong>eine</strong> zusätzliche „${escapeHtml(zielLabel)}", wenn du bei jeder einzelnen den <strong>Faktor auf 1 ÷ Anzahl geplanter „${escapeHtml(k.label)}"-Leistungen</strong> setzt (Feld „Faktor" beim Anlegen der Leistung). Beispiel bei 4 geplanten „${escapeHtml(k.label)}"-Leistungen: Faktor <strong>0,25</strong> je Leistung. Sind bei einem Schüler alle 4 erfasst, zählt der „${escapeHtml(k.label)}"-Block wie eine volle „${escapeHtml(zielLabel)}" (Gewicht 1,0). Fehlt eine, sind es 3 × 0,25 = 0,75 — etwas weniger, aber kein Fehlversuch. Lässt du den Faktor auf dem Standard 1, zieht jede einzelne Leistung dieser Art so viel Gewicht wie eine ganze „${escapeHtml(zielLabel)}" — bei 4 „${escapeHtml(k.label)}"-Leistungen also 4-faches statt einfaches Gewicht.
+  </p>` : ""}`;
+}
+
+function renderEinstellungen(m, kl) {
+  const istNP = kl.notensystem === "np";
+  const eigeneAktive = kl.kategorien.filter(k => k.aktiv && !k.faltetZu);
+  const summe = eigeneAktive.reduce((a, k) => a + (k.gewicht || 0), 0);
+  m.innerHTML = `<div class="card">
+    <h2>Gewichtung — ${escapeHtml(kl.name)} ${escapeHtml(kl.fach)}</h2>
+    <h3>Notensystem</h3>
+    <p class="hint"><strong>${istNP ? "Notenpunkte 0–15 (Kursstufe)" : "Note 1–6"}</strong> — bei Anlage der Klasse festgelegt, danach nicht mehr änderbar (sonst würden bestehende Einträge falsch interpretiert). Für ein anderes Notensystem lege eine neue Klasse an.</p>
+    <h3>Kategorien</h3>
+    <p class="hint">Häkchen = Kategorie wird in dieser Klasse genutzt (erscheint dann bei „Art" beim Anlegen einer Leistung). „Eigene Gewichtung" gibt der Kategorie ein festes %-Gewicht; „Zählt zu …" faltet sie stattdessen vollständig in eine andere Kategorie (z. B. Test zusammen wie eine zusätzliche KA, ohne eigenes Gewicht). Kategorien ohne eingetragene Noten werden für den jeweiligen Schüler automatisch ignoriert; die übrigen Gewichte werden dann anteilig hochgerechnet.</p>
+    <div>${kl.kategorien.map(k => kategorieZeile(kl, k)).join("")}</div>
+    <div class="row" style="margin-top:10px;align-items:center">
+      <button class="small" id="btnKatAdd">+ Kategorie hinzufügen</button>
+      <span><label>Summe (eigene, aktive Kategorien)</label>
+        <strong class="num" id="gewSumme" style="color:${summe === 100 ? "var(--good)" : "var(--bad)"}">${summe} %</strong></span>
+    </div>
+    ${istNP ? `
+    <h3>Halbjahresnote</h3>
+    <p class="hint">In der Kursstufe ist jedes Halbjahr eine eigenständige Endnote. HJ 1 und HJ 2 werden <strong>nicht</strong> zu einer Jahresnote verrechnet.</p>
+    <h3>Rundung</h3>
+    <p class="hint">Kaufmännisch auf ganze Notenpunkte (0–15). Grenzfälle um x,5 werden in der Übersicht orange markiert und können dort pädagogisch festgelegt werden.</p>
+    ` : `
+    <h3>Jahresnote</h3>
+    <p class="hint">Die Jahresnote wird aus allen Leistungen des gesamten Schuljahres gemeinsam berechnet (gewichtet wie oben eingestellt) — keine separate Verrechnung der Halbjahre.</p>
+    <h3>Rundung</h3>
+    <p class="hint">Halbjahr: kaufmännisch auf Viertelnoten. Jahr: kaufmännisch auf ganze Noten; Grenzfälle um x,5 werden in der Übersicht orange markiert und können dort pädagogisch festgelegt werden.</p>
+    `}
+    <h3>Klasse</h3>
+    <div class="row">
+      <div><label>Bezeichnung</label><input id="kName" value="${escapeHtml(kl.name)}"></div>
+      <div><label>Fach</label><input id="kFach" value="${escapeHtml(kl.fach)}"></div>
+      <div><label>Schuljahr</label><input id="kSj" value="${escapeHtml(kl.schuljahr)}"></div>
+      <div><button class="danger" id="kDel">Klasse löschen</button></div>
+    </div>
+  </div>`;
+
+  m.querySelectorAll("[data-kat-aktiv]").forEach(cb => cb.onchange = () => {
+    const k = kl.kategorien.find(x => x.id === cb.dataset.katAktiv);
+    k.aktiv = cb.checked;
+    markiereAenderung(); renderMain();
+  });
+  m.querySelectorAll("[data-kat-label]").forEach(inp => inp.onchange = () => {
+    const k = kl.kategorien.find(x => x.id === inp.dataset.katLabel);
+    k.label = inp.value.trim() || k.label;
+    markiereAenderung(); renderMain();
+  });
+  m.querySelectorAll("[data-kat-gewicht]").forEach(inp => inp.onchange = () => {
+    const k = kl.kategorien.find(x => x.id === inp.dataset.katGewicht);
+    k.gewicht = Math.max(0, parseFloat(inp.value) || 0);
+    markiereAenderung(); renderMain();
+  });
+  m.querySelectorAll("[data-kat-ziel]").forEach(sel => sel.onchange = () => {
+    const k = kl.kategorien.find(x => x.id === sel.dataset.katZiel);
+    k.faltetZu = sel.value;
+    markiereAenderung(); renderMain();
+  });
+  m.querySelectorAll("[data-kat-modus]").forEach(sel => sel.onchange = () => {
+    const k = kl.kategorien.find(x => x.id === sel.dataset.katModus);
+    if (sel.value === "falten") {
+      const zielKandidaten = kl.kategorien.filter(x => x.id !== k.id && !x.faltetZu);
+      if (zielKandidaten.length === 0) {
+        alert("Es gibt keine andere eigenständige Kategorie, zu der gefaltet werden könnte.");
+        sel.value = "eigen";
+        return;
+      }
+      const wirdAlsZielGenutzt = kl.kategorien.some(x => x.id !== k.id && x.faltetZu === k.id);
+      if (wirdAlsZielGenutzt) {
+        alert(`„${k.label}" ist bereits Ziel einer anderen Faltung und kann selbst nicht gefaltet werden. Ändere zuerst die andere Kategorie.`);
+        sel.value = "eigen";
+        return;
+      }
+      k.faltetZu = zielKandidaten[0].id;
+    } else {
+      k.faltetZu = null;
+    }
+    markiereAenderung(); renderMain();
+  });
+  m.querySelectorAll("[data-kat-del]").forEach(btn => btn.onclick = () => {
+    const id = btn.dataset.katDel;
+    const k = kl.kategorien.find(x => x.id === id);
+    if (kl.leistungen.some(l => l.typ === id)) {
+      return alert(`„${k.label}" kann nicht gelöscht werden, solange Leistungen dieser Art existieren. Lösche oder ändere zuerst diese Leistungen unter „Leistungen".`);
+    }
+    if (kl.kategorien.some(x => x.id !== id && x.faltetZu === id)) {
+      return alert(`„${k.label}" ist Ziel einer Faltung anderer Kategorien und kann nicht gelöscht werden. Ändere zuerst diese anderen Kategorien.`);
+    }
+    if (!confirm(`Kategorie „${k.label}" wirklich löschen?`)) return;
+    kl.kategorien = kl.kategorien.filter(x => x.id !== id);
+    markiereAenderung(); renderMain();
+  });
+  $("#btnKatAdd").onclick = () => {
+    const label = prompt("Name der neuen Kategorie (z. B. »Praktische Arbeit«):");
+    if (!label || !label.trim()) return;
+    kl.kategorien.push({ id: uid(), label: label.trim(), aktiv: true, faltetZu: null, gewicht: 0 });
+    markiereAenderung(); renderMain();
+  };
+
+  $("#kName").onchange = e => { kl.name = e.target.value.trim(); markiereAenderung(); renderAll(); };
+  $("#kFach").onchange = e => { kl.fach = e.target.value.trim(); markiereAenderung(); renderAll(); };
+  $("#kSj").onchange = e => { kl.schuljahr = e.target.value.trim(); markiereAenderung(); renderAll(); };
+  $("#kDel").onclick = () => {
+    if (!confirm(`Klasse „${kl.name} ${kl.fach}" mit allen Noten endgültig löschen?`)) return;
+    state.klassen = state.klassen.filter(k => k.id !== kl.id);
+    aktiveKlasse = state.klassen[0]?.id ?? null;
+    markiereAenderung(); renderAll();
+  };
+}
+
+/* ---------- Klassen-Dialog ---------- */
+
+function klasseDialog() {
+  const d = document.createElement("dialog");
+  const jahr = new Date().getFullYear();
+  d.innerHTML = `
+    <h2 style="margin-top:0">Neue Klasse</h2>
+    <div class="row">
+      <div><label>Bezeichnung</label><input id="nkName" placeholder="7b" style="width:90px"></div>
+      <div><label>Fach</label><input id="nkFach" placeholder="Deutsch" style="width:140px"></div>
+      <div><label>Schuljahr</label><input id="nkSj" value="${jahr}/${(jahr + 1) % 100}" style="width:110px"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div><label>Notensystem</label>
+        <select id="nkSystem">
+          <option value="note">Note (1–6)</option>
+          <option value="np">Notenpunkte (0–15, Kursstufe)</option>
+        </select></div>
+    </div>
+    <p class="hint" style="margin-top:8px">Bei Notenpunkten ist jedes Halbjahr eine eigenständige Endnote — es gibt keine Jahresnote. Das Notensystem kann nach dem Anlegen nicht mehr geändert werden.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button id="nkAbbr">Abbrechen</button>
+      <button class="primary" id="nkOk">Anlegen</button>
+    </div>`;
+  document.body.appendChild(d);
+  d.showModal();
+  d.querySelector("#nkAbbr").onclick = () => { d.close(); d.remove(); };
+  d.querySelector("#nkOk").onclick = () => {
+    const name = d.querySelector("#nkName").value.trim();
+    const fach = d.querySelector("#nkFach").value.trim();
+    if (!name || !fach) return alert("Bitte Bezeichnung und Fach angeben.");
+    const system = d.querySelector("#nkSystem").value;
+    const k = neueKlasse(name, fach, d.querySelector("#nkSj").value.trim(), system);
+    state.klassen.push(k);
+    aktiveKlasse = k.id;
+    aktiveView = "schueler";
+    markiereAenderung();
+    d.close(); d.remove();
+    renderAll();
+  };
+}
+
+/* ---------- Hilfsfunktionen ---------- */
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function kurz(s) { return s.length > 14 ? s.slice(0, 13) + "…" : s; }
+
+/* ---------- Start ---------- */
+
+document.getElementById("btnOpen").onclick = oeffnen;
+document.getElementById("btnSave").onclick = () => speichern(false);
+document.getElementById("btnSaveAs").onclick = () => speichern(true);
+
+if (!hatFSA) {
+  document.getElementById("autosaveInfo").textContent =
+    "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« lädt die Datei stattdessen herunter (Chrome oder Edge empfohlen).";
+}
+
+renderAll();
+</script>
+</body>
+</html>
