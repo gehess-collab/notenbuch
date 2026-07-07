@@ -4,20 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Notenbuch</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+CjxwYXRoIGZpbGw9IiNmZjU1MWQiIGQ9Ik0xMiAzIDEgOGwxMSA1IDExLTUtMTEtNXoiLz4KPHBhdGggZmlsbD0iIzIzMjcyZCIgb3BhY2l0eT0iMC45IiBkPSJNNSAxMC42djQuMWMwIDEuNCAzLjEgMy4zIDcgMy4zczctMS45IDctMy4zdi00LjFsLTcgMy4yLTctMy4yeiIvPgo8cmVjdCBmaWxsPSIjMjMyNzJkIiB4PSIyMS4yIiB5PSI4IiB3aWR0aD0iMS40IiBoZWlnaHQ9IjYuNiIvPgo8L3N2Zz4=">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+CjxwYXRoIGZpbGw9IiMzYjZjZTciIGQ9Ik0xMiAzIDEgOGwxMSA1IDExLTUtMTEtNXoiLz4KPHBhdGggZmlsbD0iIzFiMWYyNyIgb3BhY2l0eT0iMC45IiBkPSJNNSAxMC42djQuMWMwIDEuNCAzLjEgMy4zIDcgMy4zczctMS45IDctMy4zdi00LjFsLTcgMy4yLTctMy4yeiIvPgo8cmVjdCBmaWxsPSIjMWIxZjI3IiB4PSIyMS4yIiB5PSI4IiB3aWR0aD0iMS40IiBoZWlnaHQ9IjYuNiIvPgo8L3N2Zz4=">
 <style>
   :root {
-    --bg: #f6f5f2;
+    --bg: #eef0f3;
     --surface: #ffffff;
-    --ink: #23272d;
-    --muted: #6f7680;
-    --line: #e4e2dc;
-    --accent: #ff551d;
-    --accent-soft: #fff0ea;
-    --good: #1a7f4b;
-    --mid: #b07d10;
-    --bad: #c23434;
-    --warn-bg: #fff7e0;
+    --ink: #1b1f27;
+    --muted: #5d6675;
+    --line: #e3e6ec;
+    --accent: #3b6ce7;
+    --accent-dunkel: #2c50ad;
+    --accent-soft: #edf1fb;
+    --good: #14683d;
+    --mid: #8d6208;
+    --bad: #a42a2a;
+    --warn: #e8a13c;
+    --kopf-bg: #1b1f27;
+    --kopf-ink: #e8eaee;
+    --info-bg: #f2f4f8;
+    --info-border: #c6cedd;
+    --mono: Consolas, "Cascadia Mono", "SF Mono", monospace;
     --radius: 10px;
     font-size: 15px;
   }
@@ -33,8 +39,8 @@
 
   /* ---------- Kopf ---------- */
   header {
-    background: var(--surface);
-    border-bottom: 3px solid var(--accent);
+    background: var(--kopf-bg);
+    color: var(--kopf-ink);
     padding: 10px 18px;
     display: flex;
     align-items: center;
@@ -45,37 +51,49 @@
     z-index: 20;
   }
   header h1 {
-    font-size: 1.15rem;
+    font-size: 1rem;
     margin: 0;
-    font-weight: 700;
+    font-weight: 650;
     letter-spacing: -0.01em;
+    color: var(--kopf-ink);
   }
-  header h1 .akzent { color: var(--accent); }
+  header h1 .akzent { color: #8db0ff; }
+  header button {
+    background: transparent;
+    color: #cdd3dd;
+    border-color: #3a4150;
+  }
+  header button:hover { border-color: var(--accent); color: #fff; }
+  header button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  header button.primary:hover { background: var(--accent-dunkel); }
   .file-status {
-    font-size: 0.78rem;
-    color: var(--muted);
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    color: #8b94a5;
   }
-  .file-status.dirty { color: var(--bad); font-weight: 600; }
+  .file-status.dirty { color: #f2b3ab; font-weight: 600; }
   .spacer { flex: 1; }
 
   /* ---------- Buttons ---------- */
   button {
     font: inherit;
-    border: 1px solid var(--line);
+    border: 1px solid #d7dce4;
     background: var(--surface);
     color: var(--ink);
-    border-radius: 8px;
+    border-radius: 7px;
     padding: 6px 12px;
     cursor: pointer;
+    transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
   }
   button:hover { border-color: var(--accent); }
   button.primary {
     background: var(--accent);
     border-color: var(--accent);
     color: #fff;
-    font-weight: 600;
+    font-weight: 650;
+    box-shadow: 0 1px 4px rgba(59,108,231,0.35);
   }
-  button.primary:hover { background: #e64812; }
+  button.primary:hover { background: var(--accent-dunkel); }
   button.small { padding: 3px 8px; font-size: 0.8rem; }
   button.danger { color: var(--bad); }
   button.danger:hover { border-color: var(--bad); }
@@ -99,29 +117,35 @@
   nav.klassen {
     display: flex;
     gap: 6px;
-    padding: 10px 18px 0;
+    padding: 14px 18px 0;
     flex-wrap: wrap;
     align-items: center;
   }
   nav.klassen button.tab {
-    border-radius: 8px 8px 0 0;
-    border-bottom: none;
-    background: #edece7;
+    border-radius: 7px;
+    background: transparent;
+    border-color: transparent;
+    color: var(--muted);
+    font-size: 0.85rem;
   }
   nav.klassen button.tab.active {
-    background: var(--surface);
-    font-weight: 700;
-    border-top: 3px solid var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-dunkel);
+    border-color: #ccd9f5;
+    font-weight: 650;
   }
   nav.views {
     display: flex;
-    gap: 4px;
-    padding: 8px 18px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--line);
+    gap: 2px;
+    margin: 10px 18px 0;
+    padding: 3px;
+    background: #e4e7ed;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    width: fit-content;
   }
-  nav.views button { border: none; background: transparent; color: var(--muted); padding: 5px 10px; border-radius: 6px; }
-  nav.views button.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  nav.views button { border: none; background: transparent; color: var(--muted); padding: 5px 14px; border-radius: 7px; font-size: 0.85rem; }
+  nav.views button.active { background: var(--surface); color: var(--ink); font-weight: 650; box-shadow: 0 1px 3px rgba(27,31,39,0.15); }
 
   main { padding: 16px 18px 60px; max-width: 1400px; }
 
@@ -131,8 +155,12 @@
     border-radius: var(--radius);
     padding: 14px 16px;
     margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(27,31,39,0.04);
   }
-  .card h2 { margin: 0 0 10px; font-size: 1rem; }
+  .card h2 { margin: 0 0 10px; font-size: 0.95rem; font-weight: 650; }
+  .kennzahlen { display: flex; gap: 22px; flex-wrap: wrap; margin: 0 0 4px; }
+  .kennzahlen span { font-size: 0.72rem; color: var(--muted); }
+  .kennzahlen b { display: block; font-size: 0.95rem; font-weight: 650; color: var(--ink); font-variant-numeric: tabular-nums; }
   .card h3 {
     margin: 22px 0 10px;
     font-size: 0.76rem;
@@ -156,6 +184,31 @@
   .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
   .hint { font-size: 0.78rem; color: var(--muted); }
 
+  /* ---------- Erklärungs-Boxen ---------- */
+  .info {
+    font-size: 0.82rem;
+    color: var(--ink);
+    background: var(--info-bg);
+    border-left: 3px solid var(--info-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin: 8px 0 12px;
+  }
+  .info:empty { display: none; }
+  p.info::before { content: "ℹ️ "; }
+  .info p { margin: 0; }
+  .info p + p { margin-top: 6px; }
+  details.info > summary { cursor: pointer; color: var(--muted); }
+  details.info > summary::marker { color: var(--accent); }
+  details.info[open] > summary { margin-bottom: 6px; }
+  details.info > summary.warn { color: var(--ink); }
+  details.info > summary.warn::before { content: "⚠️ "; }
+
+  /* ---------- Visuelle Legende (Übersicht) ---------- */
+  .legende { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin: 10px 0 4px; }
+  .legende-item { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
+  .legende-item .bsp { white-space: nowrap; }
+
   /* ---------- Options-Panels (gruppieren zusammengehörige Aktionen) ---------- */
   .optiongroup {
     display: flex;
@@ -170,7 +223,7 @@
     gap: 8px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: #fbfaf7;
+    background: #f8f9fb;
     padding: 12px 14px;
   }
   .option h4 {
@@ -190,43 +243,48 @@
   .option .apply { align-self: flex-start; margin-top: 2px; }
   /* Aktions-Button: klar sichtbar, aber unter dem globalen Speichern-Primary */
   button.action {
-    border-color: var(--accent);
-    color: var(--accent);
+    border-color: #ccd9f5;
+    color: var(--accent-dunkel);
     background: var(--accent-soft);
     font-weight: 600;
   }
-  button.action:hover { background: #ffe0d3; border-color: var(--accent); }
+  button.action:hover { background: #dde7fa; border-color: var(--accent); }
 
   /* ---------- Tabellen ---------- */
-  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
-  th, td { border: 1px solid var(--line); padding: 4px 8px; text-align: left; }
-  th { background: #f1f0ec; font-weight: 600; font-size: 0.8rem; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+  th, td { border: 1px solid #e9ebf0; padding: 5px 10px; text-align: left; }
+  th { background: #f4f6f9; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  td { font-variant-numeric: tabular-nums; }
   td.num, th.num { text-align: right; }
-  tr:hover td { background: #fbfaf7; }
+  tr:hover td { background: #f5f8fd; }
   .table-scroll { overflow-x: auto; }
-  td input[type="number"] { width: 68px; border: 1px solid var(--line); background: #fbfaf8; border-radius: 5px; }
+  td input[type="number"] { width: 68px; border: 1px solid var(--line); background: #f7f8fa; border-radius: 5px; }
   td input[type="number"]:hover { border-color: var(--accent); }
   td input[type="number"]:focus { border-color: var(--accent); background: #fff; }
+  tr.avg-row td { background: #f4f6f9; border-top: 2px solid var(--line); font-weight: 650; }
+  tr.avg-row td:first-child { color: var(--muted); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; }
+  tr.avg-row:hover td { background: #f4f6f9; }
 
   /* ---------- Notenchips ---------- */
   .grade {
     display: inline-block;
     min-width: 44px;
     text-align: center;
-    padding: 1px 6px;
-    border-radius: 999px;
-    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 6px;
+    font-weight: 650;
+    font-size: 0.82rem;
     font-variant-numeric: tabular-nums;
-    background: #eee;
+    background: #eceef2;
   }
-  .g1 { background: #dff3e6; color: var(--good); }
-  .g2 { background: #e8f2da; color: #4c7a1e; }
-  .g3 { background: #fdf3d7; color: var(--mid); }
-  .g4 { background: #fde8d2; color: #a85d12; }
-  .g5 { background: #fbdcd6; color: var(--bad); }
-  .g6 { background: #f6c9c9; color: #8f1f1f; }
-  .borderline { box-shadow: 0 0 0 2px var(--accent); }
-  .dec { font-size: 0.75rem; color: var(--muted); margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .g1 { background: #e1f3e7; color: var(--good); }
+  .g2 { background: #e7f1de; color: #48761c; }
+  .g3 { background: #fcf1d2; color: var(--mid); }
+  .g4 { background: #fbe8d3; color: #a05a12; }
+  .g5 { background: #fbe1dc; color: var(--bad); }
+  .g6 { background: #f6cfcf; color: #8f1f1f; }
+  .borderline { box-shadow: 0 0 0 2px var(--warn); }
+  .dec { font-size: 0.72rem; color: #9aa2b0; margin-left: 4px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 
   .empty {
     text-align: center;
@@ -240,8 +298,9 @@
     max-width: 560px;
     width: 92%;
     padding: 18px;
+    box-shadow: 0 20px 60px rgba(15,18,24,0.3);
   }
-  dialog::backdrop { background: rgba(30,30,30,0.35); }
+  dialog::backdrop { background: rgba(15,18,24,0.4); }
 
   .leistung-item {
     display: flex;
@@ -260,7 +319,7 @@
     padding: 2px 7px;
     border-radius: 5px;
     background: var(--accent-soft);
-    color: var(--accent);
+    color: var(--accent-dunkel);
   }
   .footerbar {
     position: fixed;
@@ -286,7 +345,7 @@
     .card { border: none; padding: 0; margin-bottom: 0; }
     .print-only { display: block; margin-bottom: 12px; }
     table { font-size: 10px; }
-    .hint { display: none; }
+    .hint, .info, .legende { display: none; }
     .table-scroll { overflow: visible; }
   }
 </style>
@@ -295,13 +354,14 @@
 
 <header>
   <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0">
-    <path style="fill:var(--accent)" d="M12 3 1 8l11 5 11-5-11-5z"/>
-    <path style="fill:var(--ink)" opacity="0.85" d="M5 10.6v4.1c0 1.4 3.1 3.3 7 3.3s7-1.9 7-3.3v-4.1l-7 3.2-7-3.2z"/>
-    <rect style="fill:var(--ink)" x="21.2" y="8" width="1.4" height="6.6"/>
+    <path style="fill:#5b87f0" d="M12 3 1 8l11 5 11-5-11-5z"/>
+    <path style="fill:#dfe3ea" opacity="0.9" d="M5 10.6v4.1c0 1.4 3.1 3.3 7 3.3s7-1.9 7-3.3v-4.1l-7 3.2-7-3.2z"/>
+    <rect style="fill:#dfe3ea" x="21.2" y="8" width="1.4" height="6.6"/>
   </svg>
   <h1><span class="akzent">Noten</span>buch</h1>
   <span class="file-status" id="fileStatus">Keine Datei geöffnet</span>
   <span class="spacer"></span>
+  <button id="btnPasswort">🔓 Passwortschutz</button>
   <button id="btnOpen">Datei öffnen</button>
   <button id="btnSaveAs">Speichern unter …</button>
   <button class="primary" id="btnSave">Speichern</button>
@@ -345,6 +405,7 @@ function aktiveKategorien(kl) {
 
 let state = neuerZustand();
 let fileHandle = null;
+let verschluesselung = null; // null = unverschlüsselt, sonst { key, saltB64, iterationen } der offenen Datei
 let dirty = false;
 let aktiveKlasse = null;
 let aktiveView = "uebersicht";
@@ -518,9 +579,22 @@ function gradeClass(x, system) {
   }
   return "g" + Math.min(6, Math.max(1, Math.round(x)));
 }
-function chip(x, nk, borderline = false, system) {
+function chip(x, nk, borderline = false, system, mark = "") {
   if (x === null) return '<span class="grade">–</span>';
-  return `<span class="grade ${gradeClass(x, system)} ${borderline ? "borderline" : ""}">${fmt(x, nk)}</span>`;
+  return `<span class="grade ${gradeClass(x, system)} ${borderline ? "borderline" : ""}">${fmt(x, nk)}${mark}</span>`;
+}
+
+/* Aufklapp-Infos: Offen-Zustand überlebt das Neu-Rendern (innerHTML ersetzt sonst alles zugeklappt) */
+const offeneInfoDetails = new Set();
+function infoDetails(id, summaryHtml, bodyHtml, attrs = "", summaryClass = "") {
+  return `<details class="info" data-info="${id}" ${offeneInfoDetails.has(id) ? "open" : ""} ${attrs}>
+    <summary class="${summaryClass}">${summaryHtml}</summary>${bodyHtml}</details>`;
+}
+function bindInfoDetails(scope) {
+  scope.querySelectorAll("details[data-info]").forEach(d => d.ontoggle = () => {
+    if (d.open) offeneInfoDetails.add(d.dataset.info);
+    else offeneInfoDetails.delete(d.dataset.info);
+  });
 }
 
 /* ================= Datei-Handling ================= */
@@ -557,17 +631,203 @@ function migriere(st) {
   return st;
 }
 
+/* ---------- Passwortschutz (AES-GCM, clientseitig — kein Server, keine Wiederherstellung) ---------- */
+
+function bufZuBase64(buf) {
+  const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+  let bin = "";
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
+}
+function base64ZuBuf(str) {
+  const bin = atob(str);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+async function schluesselAbleiten(passwort, salt, iterationen) {
+  const basis = await crypto.subtle.importKey("raw", new TextEncoder().encode(passwort), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt, iterations: iterationen, hash: "SHA-256" },
+    basis,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+// Neues Passwort einrichten (oder bestehendes ändern): eigenes Salt, damit ein Passwortwechsel
+// nicht denselben Schlüssel für unterschiedliche Passwörter wiederverwendet.
+async function passwortEinrichten(passwort) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iterationen = 250000;
+  const key = await schluesselAbleiten(passwort, salt, iterationen);
+  verschluesselung = { key, saltB64: bufZuBase64(salt), iterationen };
+}
+
+async function envelopeVerschluesseln(stateObj) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const klartext = new TextEncoder().encode(JSON.stringify(stateObj));
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, verschluesselung.key, klartext);
+  return JSON.stringify({
+    notenbuchVerschluesselt: true,
+    kdf: "PBKDF2-SHA256",
+    iterationen: verschluesselung.iterationen,
+    salt: verschluesselung.saltB64,
+    iv: bufZuBase64(iv),
+    ciphertext: bufZuBase64(ciphertext)
+  });
+}
+
+// Wirft bei falschem Passwort (AES-GCM-Authentifizierung schlägt fehl) — vom Aufrufer abzufangen.
+async function envelopeEntschluesseln(envelope, passwort) {
+  const salt = base64ZuBuf(envelope.salt);
+  const iv = base64ZuBuf(envelope.iv);
+  const key = await schluesselAbleiten(passwort, salt, envelope.iterationen);
+  const ciphertext = base64ZuBuf(envelope.ciphertext);
+  const klartext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+  return { stateObj: JSON.parse(new TextDecoder().decode(klartext)), key };
+}
+
+function aktualisierePasswortButton() {
+  const b = document.getElementById("btnPasswort");
+  if (verschluesselung) {
+    b.textContent = "🔒 Geschützt";
+    b.title = "Passwort ändern oder Schutz entfernen";
+  } else {
+    b.textContent = "🔓 Passwortschutz";
+    b.title = "Passwortschutz für diese Datei einrichten";
+  }
+}
+
+// Löst mit { stateObj, key } auf, oder verwirft mit "abgebrochen" wenn der Nutzer abbricht.
+function entsperrenDialog(envelope) {
+  return new Promise((resolve, reject) => {
+    const d = document.createElement("dialog");
+    d.innerHTML = `
+      <h2 style="margin-top:0">🔒 Datei ist passwortgeschützt</h2>
+      <p class="info">Diese Notenbuch-Datei ist verschlüsselt. Gib das Passwort ein, um sie zu öffnen.</p>
+      <div><label>Passwort</label><input type="password" id="epPw" style="width:100%"></div>
+      <p class="hint" id="epFehler" style="color:var(--bad);min-height:1.2em"></p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button id="epAbbr">Abbrechen</button>
+        <button class="primary" id="epOk">Entsperren</button>
+      </div>`;
+    document.body.appendChild(d);
+    d.showModal();
+    const pwInput = d.querySelector("#epPw");
+    pwInput.focus();
+    const schliessen = () => { d.close(); d.remove(); };
+    d.querySelector("#epAbbr").onclick = () => { schliessen(); reject("abgebrochen"); };
+    const versuchen = async () => {
+      const pw = pwInput.value;
+      if (!pw) return;
+      const okBtn = d.querySelector("#epOk");
+      okBtn.disabled = true;
+      try {
+        const ergebnis = await envelopeEntschluesseln(envelope, pw);
+        schliessen();
+        resolve(ergebnis);
+      } catch (e) {
+        d.querySelector("#epFehler").textContent = "Falsches Passwort. Bitte erneut versuchen.";
+        pwInput.value = "";
+        pwInput.focus();
+        okBtn.disabled = false;
+      }
+    };
+    d.querySelector("#epOk").onclick = versuchen;
+    pwInput.onkeydown = e => { if (e.key === "Enter") versuchen(); };
+  });
+}
+
+function passwortDialog() {
+  const geschuetzt = !!verschluesselung;
+  const d = document.createElement("dialog");
+  d.innerHTML = geschuetzt ? `
+    <h2 style="margin-top:0">🔒 Passwortschutz</h2>
+    <p class="info">Diese Datei ist verschlüsselt. Das Passwort wird nur clientseitig genutzt — es gibt keine Wiederherstellung, falls du es vergisst.</p>
+    <h3 style="margin:16px 0 6px;font-size:0.85rem;color:var(--muted);border:none;padding:0">Neues Passwort setzen</h3>
+    <div class="row">
+      <div><label>Neues Passwort</label><input type="password" id="pwNeu1" style="width:100%"></div>
+      <div><label>Wiederholen</label><input type="password" id="pwNeu2" style="width:100%"></div>
+    </div>
+    <p class="hint" id="pwFehler" style="color:var(--bad);min-height:1.2em"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+      <button class="primary" id="pwAendern">Passwort ändern</button>
+    </div>
+    <h3 style="margin:20px 0 6px;font-size:0.85rem;color:var(--muted);border:none;padding:0">Schutz entfernen</h3>
+    <p class="hint">Die Datei wird beim nächsten Speichern wieder als lesbares JSON abgelegt.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="danger" id="pwEntfernen">Passwortschutz entfernen</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px">
+      <button id="pwSchliessen">Schließen</button>
+    </div>` : `
+    <h2 style="margin-top:0">🔓 Passwortschutz einrichten</h2>
+    <p class="info">Die Datei wird ab dem nächsten Speichern verschlüsselt. <strong>Wichtig:</strong> Es gibt keine Wiederherstellung — bei vergessenem Passwort sind alle Daten in dieser Datei unwiederbringlich verloren.</p>
+    <div class="row">
+      <div><label>Passwort</label><input type="password" id="pwNeu1" style="width:100%"></div>
+      <div><label>Wiederholen</label><input type="password" id="pwNeu2" style="width:100%"></div>
+    </div>
+    <p class="hint" id="pwFehler" style="color:var(--bad);min-height:1.2em"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button id="pwAbbr">Abbrechen</button>
+      <button class="primary" id="pwEinrichten">Einrichten &amp; speichern</button>
+    </div>`;
+  document.body.appendChild(d);
+  d.showModal();
+  const schliessen = () => { d.close(); d.remove(); };
+
+  const neuesPasswortPruefen = () => {
+    const p1 = d.querySelector("#pwNeu1").value;
+    const p2 = d.querySelector("#pwNeu2").value;
+    if (p1.length < 4) { d.querySelector("#pwFehler").textContent = "Mindestens 4 Zeichen."; return null; }
+    if (p1 !== p2) { d.querySelector("#pwFehler").textContent = "Passwörter stimmen nicht überein."; return null; }
+    return p1;
+  };
+
+  if (!geschuetzt) {
+    d.querySelector("#pwAbbr").onclick = schliessen;
+    d.querySelector("#pwEinrichten").onclick = async () => {
+      const pw = neuesPasswortPruefen();
+      if (!pw) return;
+      await passwortEinrichten(pw);
+      aktualisierePasswortButton();
+      schliessen();
+      await speichern();
+    };
+  } else {
+    d.querySelector("#pwSchliessen").onclick = schliessen;
+    d.querySelector("#pwAendern").onclick = async () => {
+      const pw = neuesPasswortPruefen();
+      if (!pw) return;
+      await passwortEinrichten(pw); // neues Salt + Schlüssel ersetzen den alten
+      schliessen();
+      await speichern();
+    };
+    d.querySelector("#pwEntfernen").onclick = async () => {
+      if (!confirm("Passwortschutz wirklich entfernen? Die Datei wird beim nächsten Speichern unverschlüsselt abgelegt.")) return;
+      verschluesselung = null;
+      aktualisierePasswortButton();
+      schliessen();
+      await speichern();
+    };
+  }
+}
+
 async function oeffnen() {
   try {
+    let text, neuerHandle = null;
     if (hatFSA) {
       const [h] = await window.showOpenFilePicker({ types: dateiTypen });
-      fileHandle = h;
       const file = await h.getFile();
-      state = migriere(JSON.parse(await file.text()));
+      text = await file.text();
+      neuerHandle = h;
     } else {
       const inp = document.createElement("input");
       inp.type = "file"; inp.accept = ".json";
-      const text = await new Promise((res, rej) => {
+      text = await new Promise((res, rej) => {
         inp.onchange = () => {
           const f = inp.files[0];
           if (!f) return rej();
@@ -577,17 +837,38 @@ async function oeffnen() {
         };
         inp.click();
       });
-      state = migriere(JSON.parse(text));
     }
+    const parsed = JSON.parse(text);
+    let neuerState, neueVerschluesselung;
+    if (parsed && parsed.notenbuchVerschluesselt) {
+      const { stateObj, key } = await entsperrenDialog(parsed);
+      neuerState = migriere(stateObj);
+      neueVerschluesselung = { key, saltB64: parsed.salt, iterationen: parsed.iterationen };
+    } else {
+      neuerState = migriere(parsed);
+      neueVerschluesselung = null;
+    }
+    // Erst nach erfolgreichem Entsperren übernehmen — sonst würde ein abgebrochenes Entsperren
+    // spätere Autosaves versehentlich in die neu ausgewählte (noch verschlüsselte) Datei schreiben.
+    if (neuerHandle) fileHandle = neuerHandle;
+    state = neuerState;
+    verschluesselung = neueVerschluesselung;
     aktiveKlasse = state.klassen[0]?.id ?? null;
     offeneLeistung = null;
     setDirty(false);
+    aktualisierePasswortButton();
     renderAll();
-  } catch (e) { if (e && e.name !== "AbortError") alert("Datei konnte nicht gelesen werden."); }
+  } catch (e) {
+    if (e === "abgebrochen") return;
+    if (e && e.name !== "AbortError") alert("Datei konnte nicht gelesen werden.");
+  }
 }
 
 async function speichern(alsNeu = false) {
-  const json = JSON.stringify(state, null, 1);
+  let json;
+  try {
+    json = verschluesselung ? await envelopeVerschluesseln(state) : JSON.stringify(state, null, 1);
+  } catch (e) { return alert("Verschlüsseln fehlgeschlagen."); }
   try {
     if (hatFSA) {
       if (!fileHandle || alsNeu) {
@@ -771,30 +1052,75 @@ function renderUebersicht(m, kl) {
       "<th rowspan='2'>Jahr<br><span style='font-weight:400'>ganze Note</span></th></tr>";
   kopf2 += "</tr>";
 
+  const sys = kl.notensystem;
   let rows = "";
+  let grenzfaelle = 0;
+  const hj1Dez = [], hj2Dez = [], jahrDez = [];
   for (const s of kl.schueler) {
     rows += `<tr><td><strong>${escapeHtml(s.name)}</strong></td>`;
     for (const k of aktiveKategorien(kl)) {
       for (const l of leistNachTyp[k.id]) {
         const n = leistungsNote(l, s.id);
-        rows += `<td class="num">${n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, l.system === "np" ? 0 : 2)}</span>`}</td>`;
+        rows += `<td class="num">${n === null ? "–" : chip(n, l.system === "np" ? 0 : 2, false, l.system)}</td>`;
       }
     }
     const ov = kl.overrides[s.id] || {};
     const h1 = gesamtDezimal(kl, s.id, 1);
     const h2 = gesamtDezimal(kl, s.id, 2);
+    if (h1 !== null) hj1Dez.push(h1);
+    if (h2 !== null) hj2Dez.push(h2);
     rows += zellHalbjahr(kl, s.id, 1, h1, ov.hj1);
     rows += zellHalbjahr(kl, s.id, 2, h2, ov.hj2);
-    if (kl.notensystem !== "np") {
+    if (sys === "np") {
+      if (ov.hj1 == null && h1 !== null && istGrenzfall(h1)) grenzfaelle++;
+      if (ov.hj2 == null && h2 !== null && istGrenzfall(h2)) grenzfaelle++;
+    } else {
       const j = jahresDezimal(kl, s.id);
+      if (j !== null) jahrDez.push(j);
+      if (ov.jahr == null && j !== null && istGrenzfall(j)) grenzfaelle++;
       rows += zellJahr(s.id, j, ov.jahr);
     }
     rows += "</tr>";
   }
 
-  const hinweis = kl.notensystem === "np"
-    ? `Kleine graue Zahl = Dezimal-NP (2 Nachkommastellen). In der Kursstufe ist jedes Halbjahr eine eigenständige Endnote — es wird nichts zu einer Jahresnote verrechnet. Orange umrandet = Grenzfall bei x,5 — anklicken, um die NP pädagogisch festzulegen. Festgelegte Werte sind mit • markiert. Gefaltete Kategorien (z. B. GFS) zählen automatisch zu ihrer Zielkategorie; fehlt bei einem Schüler ein Eintrag, gilt das als „nicht vorgesehen", nicht als 0 NP.`
-    : `Kleine graue Zahl = Dezimalnote (2 Nachkommastellen). Orange umrandet = Grenzfall bei x,5 — Note anklicken, um sie pädagogisch festzulegen. Festgelegte Noten sind mit • markiert. Gefaltete Kategorien (z. B. GFS) zählen automatisch zu ihrer Zielkategorie; fehlt bei einem Schüler ein Eintrag, gilt das als „nicht vorgesehen", nicht als 0.`;
+  /* Ø-Zeile: Klassendurchschnitt je Leistung + je Gesamtspalte (fehlende Einträge zählen nicht mit) */
+  const mittel = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+  let avgZellen = "";
+  for (const k of aktiveKategorien(kl)) {
+    for (const l of leistNachTyp[k.id]) {
+      const noten = kl.schueler.map(s => leistungsNote(l, s.id)).filter(n => n !== null);
+      avgZellen += `<td class="num">${fmt(mittel(noten), 2)}</td>`;
+    }
+  }
+  avgZellen += `<td class="num">${fmt(mittel(hj1Dez), 2)}</td><td class="num">${fmt(mittel(hj2Dez), 2)}</td>`;
+  if (sys !== "np") avgZellen += `<td class="num">${fmt(mittel(jahrDez), 2)}</td>`;
+  rows += `<tr class="avg-row"><td>Ø Klasse</td>${avgZellen}</tr>`;
+
+  const kennzahlen = `<div class="kennzahlen">
+    <span>Schüler/innen<b>${kl.schueler.length}</b></span>
+    <span>Leistungen<b>${kl.leistungen.length}</b></span>
+    <span>Ø HJ 1<b>${fmt(mittel(hj1Dez), 2)}</b></span>
+    <span>Ø HJ 2<b>${fmt(mittel(hj2Dez), 2)}</b></span>
+    ${sys !== "np" ? `<span>Ø Jahr<b>${fmt(mittel(jahrDez), 2)}</b></span>` : ""}
+    <span>Offene Grenzfälle<b>${grenzfaelle}</b></span>
+  </div>`;
+
+  /* Legende: Beispiel-Chips laufen durch denselben chip()-Pfad wie die echten Zellen */
+  const legende = sys === "np" ? `<div class="legende">
+    <span class="legende-item"><span class="bsp">${chip(9, 0, false, "np")}<span class="dec">8,80</span></span> Endnote mit Dezimalwert</span>
+    <span class="legende-item"><span class="bsp">${chip(10, 0, true, "np")}<span class="dec">9,50</span></span> Grenzfall bei x,5 — anklicken zum Festlegen</span>
+    <span class="legende-item"><span class="bsp">${chip(9, 0, false, "np", " •")}</span> manuell festgelegt</span>
+  </div>` : `<div class="legende">
+    <span class="legende-item"><span class="bsp">${chip(2.75, 2, false, "note")}<span class="dec">2,83</span></span> gerundete Note mit Dezimalwert</span>
+    <span class="legende-item"><span class="bsp">${chip(4, 0, true, "note")}<span class="dec">3,50</span></span> Grenzfall bei x,5 (Jahresnote) — anklicken zum Festlegen</span>
+    <span class="legende-item"><span class="bsp">${chip(3, 2, false, "note", " •")}</span> manuell festgelegt</span>
+  </div>`;
+  const hinweis = infoDetails("ueb-hinweise",
+    sys === "np"
+      ? `Hinweise zur Berechnung: gefaltete Kategorien, „nicht vorgesehen", eigenständige Halbjahres-Endnoten`
+      : `Hinweise zur Berechnung: gefaltete Kategorien und „nicht vorgesehen"`,
+    `<p>Gefaltete Kategorien (z. B. GFS) zählen automatisch zu ihrer Zielkategorie; fehlt bei einem Schüler ein Eintrag, gilt das als „nicht vorgesehen", nicht als 0${sys === "np" ? " NP" : ""}.</p>
+    ${sys === "np" ? `<p>In der Kursstufe ist jedes Halbjahr eine eigenständige Endnote — es wird nichts zu einer Jahresnote verrechnet.</p>` : ""}`);
 
   m.innerHTML = `<div class="card">
     <div class="print-only"><strong>${escapeHtml(kl.name)} ${escapeHtml(kl.fach)} — ${escapeHtml(kl.schuljahr)}</strong>${kl.notensystem === "np" ? " · Kursstufe (NP)" : ""}
@@ -804,9 +1130,12 @@ function renderUebersicht(m, kl) {
       <button class="small" id="btnPDF">Drucken / PDF</button>
     </div>
     <h2>Gesamtübersicht — ${escapeHtml(kl.name)} ${escapeHtml(kl.fach)} (${escapeHtml(kl.schuljahr)})${kl.notensystem === "np" ? " · Kursstufe (NP)" : ""}</h2>
-    <p class="hint">${hinweis}</p>
+    ${kennzahlen}
+    ${legende}
+    ${hinweis}
     <div class="table-scroll"><table class="num">${kopf1}${kopf2}${rows}</table></div>
   </div>`;
+  bindInfoDetails(m);
 
   m.querySelectorAll("[data-ov]").forEach(el => {
     el.onclick = () => overrideDialog(el.dataset.ov, el.dataset.sid);
@@ -822,7 +1151,7 @@ function zellHalbjahr(kl, sid, hj, dez, override) {
   const mark = override != null ? " •" : "";
   const grenz = override == null && dez !== null && sys === "np" && istGrenzfall(dez);
   return `<td class="num" style="cursor:pointer" data-ov="hj${hj}" data-sid="${sid}" title="Anklicken zum Festlegen">
-    <span class="grade ${gradeClass(wert, sys)} ${grenz ? "borderline" : ""}">${fmt(wert, sys === "np" ? 0 : 2)}${mark}</span>
+    ${chip(wert, sys === "np" ? 0 : 2, grenz, sys, mark)}
     <span class="dec">${fmt(dez, 2)}</span></td>`;
 }
 
@@ -833,7 +1162,7 @@ function zellJahr(sid, dez, override) {
   const grenz = override == null && dez !== null && istGrenzfall(dez);
   const mark = override != null ? " •" : "";
   return `<td class="num" style="cursor:pointer" data-ov="jahr" data-sid="${sid}" title="Anklicken zum Festlegen">
-    ${chip(wert, 0, grenz)}${mark ? "<strong>" + mark + "</strong>" : ""}
+    ${chip(wert, 0, grenz, undefined, mark)}
     <span class="dec">${fmt(dez, 2)}</span></td>`;
 }
 
@@ -930,8 +1259,8 @@ function leistungDialog(id) {
           <option value="note" ${l && l.modus === "note" ? "selected" : ""}>Note direkt</option>
         </select></div>
     </div>
-    <p class="hint" style="margin-top:10px">Der Faktor gewichtet diese Leistung innerhalb ihrer Kategorie (z. B. Test mit Faktor 0,5 zählt halb so viel wie einer mit 1). Neue Kategorien und ob eine Kategorie zu einer anderen "gefaltet" wird, legst du unter „Gewichtung" fest. Notensystem dieser Klasse: <strong>${kl.notensystem === "np" ? "Notenpunkte 0–15 (Kursstufe)" : "Note 1–6"}</strong>.</p>
-    <p class="hint" id="dFaltHinweis" style="margin-top:6px"></p>
+    <p class="info" style="margin-top:10px">Der Faktor gewichtet diese Leistung innerhalb ihrer Kategorie (z. B. Test mit Faktor 0,5 zählt halb so viel wie einer mit 1). Neue Kategorien und ob eine Kategorie zu einer anderen "gefaltet" wird, legst du unter „Gewichtung" fest. Notensystem dieser Klasse: <strong>${kl.notensystem === "np" ? "Notenpunkte 0–15 (Kursstufe)" : "Note 1–6"}</strong>.</p>
+    <p class="info" id="dFaltHinweis" style="margin-top:6px"></p>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
       <button id="dAbbr">Abbrechen</button>
       <button class="primary" id="dOk">${l ? "Übernehmen" : "Anlegen"}</button>
@@ -1015,7 +1344,7 @@ function renderLeistungEingabe(m, kl) {
     ${(() => {
       const eigeneKat = (kl.kategorien || []).find(k => k.id === l.typ);
       if (eigeneKat && eigeneKat.faltetZu) {
-        return `<p class="hint">Optionale Leistung: Zählt zu „${escapeHtml(kategorieLabel(kl, eigeneKat.faltetZu))}". Schüler/innen ohne Eintrag gelten als „nicht vorgesehen" und werden dort einfach nicht mitgerechnet — kein Fehlversuch.</p>`;
+        return `<p class="info">Optionale Leistung: Zählt zu „${escapeHtml(kategorieLabel(kl, eigeneKat.faltetZu))}". Schüler/innen ohne Eintrag gelten als „nicht vorgesehen" und werden dort einfach nicht mitgerechnet — kein Fehlversuch.</p>`;
       }
       return "";
     })()}`;
@@ -1042,7 +1371,7 @@ function renderLeistungEingabe(m, kl) {
       knickNoteOptionen += `<option value="${note}" ${note === knickNoteVal ? "selected" : ""}>${fmt(note, 2)}</option>`;
     }
     html += `<h3>${skalaLabel === "NP" ? "Punkteschlüssel (Notenpunkte)" : "Notenschlüssel"}</h3>
-      <p class="hint">Erreicht ein Schüler mindestens die angegebenen VP, erhält er die zugehörige ${skalaLabel === "NP" ? "Notenpunktzahl" : "Note"}. Zwischenwerte fallen auf den nächsttieferen Schwellwert. Wähle eine Methode zum Erzeugen — die Schwellwerte in der Tabelle darunter bleiben danach frei editierbar.</p>
+      <p class="info">Erreicht ein Schüler mindestens die angegebenen VP, erhält er die zugehörige ${skalaLabel === "NP" ? "Notenpunktzahl" : "Note"}. Zwischenwerte fallen auf den nächsttieferen Schwellwert. Wähle eine Methode zum Erzeugen — die Schwellwerte in der Tabelle darunter bleiben danach frei editierbar.</p>
       <div class="optiongroup">`;
     if (l.system !== "np") {
       html += `
@@ -1057,11 +1386,11 @@ function renderLeistungEingabe(m, kl) {
           <div class="fields">
             <div><label>Bestanden ab</label>
               <span style="white-space:nowrap"><input type="number" min="1" max="99" step="1" id="knickProz" value="${knickProz}" style="width:52px"> %</span>
-              <div class="hint" id="knickVpAnzeige" style="margin-top:3px"></div>
             </div>
             <div><label>Note am Knick</label>
               <select id="knickNote" style="width:80px">${knickNoteOptionen}</select></div>
           </div>
+          <div class="hint" id="knickVpAnzeige" style="margin-top:3px"></div>
           <details style="margin:-2px 0 2px">
             <summary class="hint" style="cursor:pointer">Erweitert: VP für Note 1 / Note 6</summary>
             <div class="fields" style="margin-top:6px">
@@ -1104,6 +1433,9 @@ function renderLeistungEingabe(m, kl) {
       html += `<td class="num"><strong id="sum-${s.id}">${n === null ? "–" : fmt(sum, 1)}</strong></td>
         <td class="num" id="note-${s.id}">${n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, l.system === "np" ? 0 : 2)}</span>`}</td></tr>`;
     }
+    html += `<tr class="avg-row"><td>Ø Klasse</td>
+      ${l.teilaufgaben.map((t, i) => `<td class="num" data-avg-ta="${i}"></td>`).join("")}
+      <td class="num" id="avgSum"></td><td class="num" id="avgNote"></td></tr>`;
     html += `</table></div>`;
   } else {
     /* Direkte Noteneingabe */
@@ -1118,12 +1450,33 @@ function renderLeistungEingabe(m, kl) {
           ? `<input type="number" min="0" max="15" step="1" data-note="${s.id}" value="${v}">`
           : `<input type="number" min="1" max="6" step="0.25" data-note="${s.id}" value="${v}">`}</td></tr>`;
     }
+    html += `<tr class="avg-row"><td>Ø Klasse</td><td class="num" id="avgNote"></td></tr>`;
     html += `</table></div>`;
   }
   html += `</div>`;
   m.innerHTML = html;
 
   $("#btnZurueck").onclick = () => { offeneLeistung = null; renderMain(); };
+
+  /* Ø-Zeile live nachführen (die Eingabemaske rendert bei Punkteeingaben nicht komplett neu) */
+  const mittelWert = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+  const avgAktualisieren = () => {
+    const mitNote = kl.schueler.map(s => leistungsNote(l, s.id)).filter(n => n !== null);
+    const avgNoteEl = m.querySelector("#avgNote");
+    if (avgNoteEl) avgNoteEl.textContent = fmt(mittelWert(mitNote), l.system === "np" ? 1 : 2);
+    if (l.modus !== "punkte") return;
+    l.teilaufgaben.forEach((t, i) => {
+      const werte = kl.schueler
+        .map(s => (l.noten[s.id] && Array.isArray(l.noten[s.id].vp)) ? l.noten[s.id].vp[i] : null)
+        .filter(v => typeof v === "number");
+      const el = m.querySelector(`[data-avg-ta="${i}"]`);
+      if (el) el.textContent = fmt(mittelWert(werte), 1);
+    });
+    const summen = kl.schueler.filter(s => leistungsNote(l, s.id) !== null).map(s => vpSumme(l, s.id));
+    const avgSumEl = m.querySelector("#avgSum");
+    if (avgSumEl) avgSumEl.textContent = fmt(mittelWert(summen), 1);
+  };
+  avgAktualisieren();
 
   if (l.modus === "punkte") {
     $("#btnTA").onclick = () => {
@@ -1201,6 +1554,7 @@ function renderLeistungEingabe(m, kl) {
       const n = leistungsNote(l, sid);
       document.getElementById("sum-" + sid).textContent = n === null ? "–" : fmt(vpSumme(l, sid), 1);
       document.getElementById("note-" + sid).innerHTML = n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, l.system === "np" ? 0 : 2)}</span>`;
+      avgAktualisieren();
       markiereAenderung();
     });
   } else {
@@ -1212,6 +1566,7 @@ function renderLeistungEingabe(m, kl) {
       if (v !== null && (isNaN(v) || v < minVal || v > maxVal)) { alert(`Wert zwischen ${minVal} und ${maxVal}.`); inp.value = ""; return; }
       if (v === null) delete l.noten[sid];
       else l.noten[sid] = { note: v };
+      avgAktualisieren();
       markiereAenderung();
     });
   }
@@ -1274,9 +1629,10 @@ function kategorieZeile(kl, k) {
     </select>
     <button class="small danger" data-kat-del="${k.id}">✕</button>
   </div>
-  ${(k.faltetZu && k.id !== "gfs") ? `<p class="hint" style="margin:2px 0 10px 26px">
-    Mehrere „${escapeHtml(k.label)}"-Leistungen zählen nur dann zusammen wie <strong>eine</strong> zusätzliche „${escapeHtml(zielLabel)}", wenn du bei jeder einzelnen den <strong>Faktor auf 1 ÷ Anzahl geplanter „${escapeHtml(k.label)}"-Leistungen</strong> setzt (Feld „Faktor" beim Anlegen der Leistung). Beispiel bei 4 geplanten „${escapeHtml(k.label)}"-Leistungen: Faktor <strong>0,25</strong> je Leistung. Sind bei einem Schüler alle 4 erfasst, zählt der „${escapeHtml(k.label)}"-Block wie eine volle „${escapeHtml(zielLabel)}" (Gewicht 1,0). Fehlt eine, sind es 3 × 0,25 = 0,75 — etwas weniger, aber kein Fehlversuch. Lässt du den Faktor auf dem Standard 1, zieht jede einzelne Leistung dieser Art so viel Gewicht wie eine ganze „${escapeHtml(zielLabel)}" — bei 4 „${escapeHtml(k.label)}"-Leistungen also 4-faches statt einfaches Gewicht.
-  </p>` : ""}`;
+  ${(k.faltetZu && k.id !== "gfs") ? infoDetails("kat-falt-" + k.id,
+    `Wichtig: Faktor je „${escapeHtml(k.label)}" auf <strong>1 ÷ Anzahl geplanter Leistungen</strong> setzen (z. B. 0,25 bei 4) — sonst zieht jede einzelne so viel Gewicht wie eine ganze „${escapeHtml(zielLabel)}"`,
+    `<p>Der Faktor wird im Feld „Faktor" beim Anlegen der Leistung gesetzt. Beispiel bei 4 geplanten „${escapeHtml(k.label)}"-Leistungen mit Faktor 0,25: Sind bei einem Schüler alle 4 erfasst, zählt der „${escapeHtml(k.label)}"-Block wie <strong>eine</strong> volle „${escapeHtml(zielLabel)}" (Gewicht 1,0). Fehlt eine, sind es 3 × 0,25 = 0,75 — etwas weniger, aber kein Fehlversuch. Beim Standard-Faktor 1 zählen 4 „${escapeHtml(k.label)}"-Leistungen dagegen wie 4 volle „${escapeHtml(zielLabel)}".</p>`,
+    `style="margin:2px 0 10px 26px"`, "warn") : ""}`;
 }
 
 function renderEinstellungen(m, kl) {
@@ -1286,9 +1642,9 @@ function renderEinstellungen(m, kl) {
   m.innerHTML = `<div class="card">
     <h2>Gewichtung — ${escapeHtml(kl.name)} ${escapeHtml(kl.fach)}</h2>
     <h3>Notensystem</h3>
-    <p class="hint"><strong>${istNP ? "Notenpunkte 0–15 (Kursstufe)" : "Note 1–6"}</strong> — bei Anlage der Klasse festgelegt, danach nicht mehr änderbar (sonst würden bestehende Einträge falsch interpretiert). Für ein anderes Notensystem lege eine neue Klasse an.</p>
+    <p class="info"><strong>${istNP ? "Notenpunkte 0–15 (Kursstufe)" : "Note 1–6"}</strong> — bei Anlage der Klasse festgelegt, danach nicht mehr änderbar (sonst würden bestehende Einträge falsch interpretiert). Für ein anderes Notensystem lege eine neue Klasse an.</p>
     <h3>Kategorien</h3>
-    <p class="hint">Häkchen = Kategorie wird in dieser Klasse genutzt (erscheint dann bei „Art" beim Anlegen einer Leistung). „Eigene Gewichtung" gibt der Kategorie ein festes %-Gewicht; „Zählt zu …" faltet sie stattdessen vollständig in eine andere Kategorie (z. B. Test zusammen wie eine zusätzliche KA, ohne eigenes Gewicht). Kategorien ohne eingetragene Noten werden für den jeweiligen Schüler automatisch ignoriert; die übrigen Gewichte werden dann anteilig hochgerechnet.</p>
+    <p class="info">Häkchen = Kategorie wird in dieser Klasse genutzt (erscheint dann bei „Art" beim Anlegen einer Leistung). „Eigene Gewichtung" gibt der Kategorie ein festes %-Gewicht; „Zählt zu …" faltet sie stattdessen vollständig in eine andere Kategorie (z. B. Test zusammen wie eine zusätzliche KA, ohne eigenes Gewicht). Kategorien ohne eingetragene Noten werden für den jeweiligen Schüler automatisch ignoriert; die übrigen Gewichte werden dann anteilig hochgerechnet.</p>
     <div>${kl.kategorien.map(k => kategorieZeile(kl, k)).join("")}</div>
     <div class="row" style="margin-top:10px;align-items:center">
       <button class="action small" id="btnKatAdd">+ Kategorie hinzufügen</button>
@@ -1297,14 +1653,14 @@ function renderEinstellungen(m, kl) {
     </div>
     ${istNP ? `
     <h3>Halbjahresnote</h3>
-    <p class="hint">In der Kursstufe ist jedes Halbjahr eine eigenständige Endnote. HJ 1 und HJ 2 werden <strong>nicht</strong> zu einer Jahresnote verrechnet.</p>
+    <p class="info">In der Kursstufe ist jedes Halbjahr eine eigenständige Endnote. HJ 1 und HJ 2 werden <strong>nicht</strong> zu einer Jahresnote verrechnet.</p>
     <h3>Rundung</h3>
-    <p class="hint">Kaufmännisch auf ganze Notenpunkte (0–15). Grenzfälle um x,5 werden in der Übersicht orange markiert und können dort pädagogisch festgelegt werden.</p>
+    <p class="info">Kaufmännisch auf ganze Notenpunkte (0–15). Grenzfälle um x,5 werden in der Übersicht orange markiert und können dort pädagogisch festgelegt werden.</p>
     ` : `
     <h3>Jahresnote</h3>
-    <p class="hint">Die Jahresnote wird aus allen Leistungen des gesamten Schuljahres gemeinsam berechnet (gewichtet wie oben eingestellt) — keine separate Verrechnung der Halbjahre.</p>
+    <p class="info">Die Jahresnote wird aus allen Leistungen des gesamten Schuljahres gemeinsam berechnet (gewichtet wie oben eingestellt) — keine separate Verrechnung der Halbjahre.</p>
     <h3>Rundung</h3>
-    <p class="hint">Halbjahr: kaufmännisch auf Viertelnoten. Jahr: kaufmännisch auf ganze Noten; Grenzfälle um x,5 werden in der Übersicht orange markiert und können dort pädagogisch festgelegt werden.</p>
+    <p class="info">Halbjahr: kaufmännisch auf Viertelnoten. Jahr: kaufmännisch auf ganze Noten; Grenzfälle um x,5 werden in der Übersicht orange markiert und können dort pädagogisch festgelegt werden.</p>
     `}
     <h3>Klasse</h3>
     <div class="row">
@@ -1314,6 +1670,7 @@ function renderEinstellungen(m, kl) {
       <div><button class="danger" id="kDel">Klasse löschen</button></div>
     </div>
   </div>`;
+  bindInfoDetails(m);
 
   m.querySelectorAll("[data-kat-aktiv]").forEach(cb => cb.onchange = () => {
     const k = kl.kategorien.find(x => x.id === cb.dataset.katAktiv);
@@ -1406,7 +1763,7 @@ function klasseDialog() {
           <option value="np">Notenpunkte (0–15, Kursstufe)</option>
         </select></div>
     </div>
-    <p class="hint" style="margin-top:8px">Bei Notenpunkten ist jedes Halbjahr eine eigenständige Endnote — es gibt keine Jahresnote. Das Notensystem kann nach dem Anlegen nicht mehr geändert werden.</p>
+    <p class="info" style="margin-top:8px">Bei Notenpunkten ist jedes Halbjahr eine eigenständige Endnote — es gibt keine Jahresnote. Das Notensystem kann nach dem Anlegen nicht mehr geändert werden.</p>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
       <button id="nkAbbr">Abbrechen</button>
       <button class="primary" id="nkOk">Anlegen</button>
@@ -1442,6 +1799,8 @@ function kurz(s) { return s.length > 14 ? s.slice(0, 13) + "…" : s; }
 document.getElementById("btnOpen").onclick = oeffnen;
 document.getElementById("btnSave").onclick = () => speichern(false);
 document.getElementById("btnSaveAs").onclick = () => speichern(true);
+document.getElementById("btnPasswort").onclick = passwortDialog;
+aktualisierePasswortButton();
 
 if (!hatFSA) {
   document.getElementById("autosaveInfo").textContent =
