@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Notenbuch</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+CjxwYXRoIGZpbGw9IiMzYjZjZTciIGQ9Ik0xMiAzIDEgOGwxMSA1IDExLTUtMTEtNXoiLz4KPHBhdGggZmlsbD0iIzFiMWYyNyIgb3BhY2l0eT0iMC45IiBkPSJNNSAxMC42djQuMWMwIDEuNCAzLjEgMy4zIDcgMy4zczctMS45IDctMy4zdi00LjFsLTcgMy4yLTctMy4yeiIvPgo8cmVjdCBmaWxsPSIjMWIxZjI3IiB4PSIyMS4yIiB5PSI4IiB3aWR0aD0iMS40IiBoZWlnaHQ9IjYuNiIvPgo8L3N2Zz4=">
+<!-- iOS/iPadOS: "Zum Home-Bildschirm" ergibt ein Vollbild-App-Icon ohne Safari-Chrome -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Notenbuch">
+<meta name="theme-color" content="#1b1f27">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
 <style>
   :root {
     --bg: #eef0f3;
@@ -405,6 +411,7 @@ function aktiveKategorien(kl) {
 
 let state = neuerZustand();
 let fileHandle = null;
+let letzterDateiname = "notenbuch.json"; // fürs Web-Share-Speichern ohne fileHandle (iOS u. Ä.)
 let verschluesselung = null; // null = unverschlüsselt, sonst { key, saltB64, iterationen } der offenen Datei
 let dirty = false;
 let aktiveKlasse = null;
@@ -831,6 +838,7 @@ async function oeffnen() {
         inp.onchange = () => {
           const f = inp.files[0];
           if (!f) return rej();
+          letzterDateiname = f.name;
           const r = new FileReader();
           r.onload = () => res(r.result);
           r.readAsText(f);
@@ -881,9 +889,24 @@ async function speichern(alsNeu = false) {
       await w.close();
       setDirty(false);
     } else {
+      // Kein direktes Dateisystem-API (v. a. iOS/iPadOS): Web Share mit Datei anbieten, wenn möglich —
+      // öffnet das native Teilen-Menü, worüber sich die bestehende Datei überschreiben lässt (z. B. "In Dateien sichern").
+      // Bricht der Nutzer das Teilen-Menü ab, bleibt die Änderung ungespeichert, ohne zusätzlich einen Download auszulösen.
+      const datei = new File([json], letzterDateiname, { type: "application/json" });
+      const kannTeilen = !!(navigator.canShare && navigator.canShare({ files: [datei] }));
+      if (kannTeilen) {
+        try {
+          await navigator.share({ files: [datei], title: "Notenbuch" });
+          setDirty(false);
+          return;
+        } catch (e) {
+          if (e && e.name === "AbortError") return;
+          // sonst: unten auf den Downloadlink ausweichen
+        }
+      }
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
-      a.download = "notenbuch.json";
+      a.download = letzterDateiname;
       a.click();
       setDirty(false);
     }
@@ -1803,8 +1826,11 @@ document.getElementById("btnPasswort").onclick = passwortDialog;
 aktualisierePasswortButton();
 
 if (!hatFSA) {
-  document.getElementById("autosaveInfo").textContent =
-    "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« lädt die Datei stattdessen herunter (Chrome oder Edge empfohlen).";
+  const kannWebShareDateien = !!(navigator.canShare && navigator.share &&
+    navigator.canShare({ files: [new File(["x"], "test.json", { type: "application/json" })] }));
+  document.getElementById("autosaveInfo").textContent = kannWebShareDateien
+    ? "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« öffnet stattdessen ein Teilen-Menü. Wähle dort „In Dateien sichern\" und überschreibe deine bestehende Notenbuch-Datei. Automatisches Speichern ist auf diesem Gerät nicht möglich."
+    : "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« lädt die Datei stattdessen herunter (Chrome oder Edge empfohlen).";
 }
 
 renderAll();
