@@ -31,6 +31,11 @@
     --kopf-ink: #e8eaee;
     --info-bg: #f2f4f8;
     --info-border: #c6cedd;
+    --hj1-bg: #f1f5fe;
+    --hj1-bg-stark: #cddef8;
+    --hj2-bg: #fdf6ec;
+    --hj2-bg-stark: #f8dfb2;
+    --jahr-bg: #e3d1f5;
     --mono: Consolas, "Cascadia Mono", "SF Mono", monospace;
     --radius: 10px;
     font-size: 15px;
@@ -124,10 +129,13 @@
   /* ---------- Navigation ---------- */
   nav.klassen {
     display: flex;
-    gap: 6px;
-    padding: 14px 18px 0;
+    gap: 8px;
+    padding: 12px 18px;
     flex-wrap: wrap;
     align-items: center;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 1px 3px rgba(27,31,39,0.06);
   }
   nav.klassen button.tab {
     border-radius: 7px;
@@ -137,23 +145,24 @@
     font-size: 0.85rem;
   }
   nav.klassen button.tab.active {
-    background: var(--accent-soft);
-    color: var(--accent-dunkel);
-    border-color: #ccd9f5;
-    font-weight: 650;
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    font-weight: 700;
+    box-shadow: 0 1px 4px rgba(59,108,231,0.35);
   }
   nav.views {
     display: flex;
     gap: 2px;
     margin: 10px 18px 0;
     padding: 3px;
-    background: #e4e7ed;
-    border: 1px solid var(--line);
+    background: #d8dce4;
+    border: 1px solid #c5cbd7;
     border-radius: 9px;
     width: fit-content;
   }
-  nav.views button { border: none; background: transparent; color: var(--muted); padding: 5px 14px; border-radius: 7px; font-size: 0.85rem; }
-  nav.views button.active { background: var(--surface); color: var(--ink); font-weight: 650; box-shadow: 0 1px 3px rgba(27,31,39,0.15); }
+  nav.views button { border: none; background: transparent; color: var(--muted); padding: 6px 16px; border-radius: 7px; font-size: 0.85rem; font-weight: 600; }
+  nav.views button.active { background: var(--accent); color: #fff; font-weight: 700; box-shadow: 0 1px 4px rgba(59,108,231,0.4); }
 
   main { padding: 16px 18px 60px; max-width: 1400px; }
 
@@ -166,7 +175,7 @@
     box-shadow: 0 1px 2px rgba(27,31,39,0.04);
   }
   .card h2 { margin: 0 0 10px; font-size: 0.95rem; font-weight: 650; }
-  .kennzahlen { display: flex; gap: 22px; flex-wrap: wrap; margin: 0 0 4px; }
+  .kennzahlen { display: flex; gap: 22px; flex-wrap: wrap; margin: 0 0 10px; background: #eef1f7; border: 1px solid var(--line); border-radius: 8px; padding: 10px 18px; }
   .kennzahlen span { font-size: 0.72rem; color: var(--muted); }
   .kennzahlen b { display: block; font-size: 0.95rem; font-weight: 650; color: var(--ink); font-variant-numeric: tabular-nums; }
   .card h3 {
@@ -216,6 +225,7 @@
   .legende { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin: 10px 0 4px; }
   .legende-item { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
   .legende-item .bsp { white-space: nowrap; }
+  .hj-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--line); vertical-align: middle; }
 
   /* ---------- Options-Panels (gruppieren zusammengehörige Aktionen) ---------- */
   .optiongroup {
@@ -261,7 +271,7 @@
   /* ---------- Tabellen ---------- */
   table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
   th, td { border: 1px solid #e9ebf0; padding: 5px 10px; text-align: left; }
-  th { background: #f4f6f9; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  th { background: #e6e9f0; font-weight: 750; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); border-bottom: 2px solid #d2d7e2; }
   td { font-variant-numeric: tabular-nums; }
   td.num, th.num { text-align: right; }
   tr:hover td { background: #f5f8fd; }
@@ -292,7 +302,21 @@
   .g5 { background: #fbe1dc; color: var(--bad); }
   .g6 { background: #f6cfcf; color: #8f1f1f; }
   .borderline { box-shadow: 0 0 0 2px var(--warn); }
-  .dec { font-size: 0.72rem; color: #9aa2b0; margin-left: 4px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .dec {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #465063;
+    margin-left: 6px;
+    padding: 1px 7px;
+    border-radius: 5px;
+    background: rgba(93,102,117,0.16);
+    border: 1px solid rgba(93,102,117,0.22);
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    vertical-align: middle;
+  }
+  .dec::before { content: "Ø "; opacity: 0.65; }
 
   .empty {
     text-align: center;
@@ -591,6 +615,12 @@ function gradeClass(x, system) {
 function chip(x, nk, borderline = false, system, mark = "") {
   if (x === null) return '<span class="grade">–</span>';
   return `<span class="grade ${gradeClass(x, system)} ${borderline ? "borderline" : ""}">${fmt(x, nk)}${mark}</span>`;
+}
+// Hintergrundfarbe zur Halbjahres-Kennzeichnung in der Übersichtstabelle (1 = HJ1, 2 = HJ2)
+function hjFarbe(hj, stark = false) {
+  return hj === 1
+    ? (stark ? "var(--hj1-bg-stark)" : "var(--hj1-bg)")
+    : (stark ? "var(--hj2-bg-stark)" : "var(--hj2-bg)");
 }
 
 /* Aufklapp-Infos: Offen-Zustand überlebt das Neu-Rendern (innerHTML ersetzt sonst alles zugeklappt) */
@@ -1067,14 +1097,14 @@ function renderUebersicht(m, kl) {
       ? `${k.label} (zählt zu ${kategorieLabel(kl, zielId)})`
       : `${k.label} (${k.gewicht} %)`;
     kopf1 += `<th colspan="${ls.length}">${label}</th>`;
-    for (const l of ls) kopf2 += `<th title="${escapeHtml(l.titel)} · HJ${l.halbjahr} · Faktor ${l.gewicht}">${escapeHtml(kurz(l.titel))}<br><span style="font-weight:400;color:var(--muted)">HJ${l.halbjahr}</span></th>`;
+    for (const l of ls) kopf2 += `<th style="background:${hjFarbe(l.halbjahr, true)}" title="${escapeHtml(l.titel)} · HJ${l.halbjahr} · Faktor ${l.gewicht}">${escapeHtml(kurz(l.titel))}<br><span style="font-weight:400;color:var(--muted)">HJ${l.halbjahr}</span></th>`;
   }
   kopf1 += kl.notensystem === "np"
-    ? "<th rowspan='2'>HJ 1<br><span style='font-weight:400'>Endnote (NP)</span></th>" +
-      "<th rowspan='2'>HJ 2<br><span style='font-weight:400'>Endnote (NP)</span></th></tr>"
-    : "<th rowspan='2'>HJ 1<br><span style='font-weight:400'>Viertelnote</span></th>" +
-      "<th rowspan='2'>HJ 2<br><span style='font-weight:400'>Viertelnote</span></th>" +
-      "<th rowspan='2'>Jahr<br><span style='font-weight:400'>ganze Note</span></th></tr>";
+    ? `<th rowspan='2' style="background:${hjFarbe(1, true)}">HJ 1<br><span style='font-weight:400'>Endnote (NP)</span></th>` +
+      `<th rowspan='2' style="background:${hjFarbe(2, true)}">HJ 2<br><span style='font-weight:400'>Endnote (NP)</span></th></tr>`
+    : `<th rowspan='2' style="background:${hjFarbe(1, true)}">HJ 1<br><span style='font-weight:400'>Viertelnote</span></th>` +
+      `<th rowspan='2' style="background:${hjFarbe(2, true)}">HJ 2<br><span style='font-weight:400'>Viertelnote</span></th>` +
+      `<th rowspan='2' style="background:var(--jahr-bg)">Jahr<br><span style='font-weight:400'>ganze Note</span></th></tr>`;
   kopf2 += "</tr>";
 
   const sys = kl.notensystem;
@@ -1086,7 +1116,7 @@ function renderUebersicht(m, kl) {
     for (const k of aktiveKategorien(kl)) {
       for (const l of leistNachTyp[k.id]) {
         const n = leistungsNote(l, s.id);
-        rows += `<td class="num">${n === null ? "–" : chip(n, l.system === "np" ? 0 : 2, false, l.system)}</td>`;
+        rows += `<td class="num" style="background:${hjFarbe(l.halbjahr)}">${n === null ? "–" : chip(n, l.system === "np" ? 0 : 2, false, l.system)}</td>`;
       }
     }
     const ov = kl.overrides[s.id] || {};
@@ -1114,11 +1144,11 @@ function renderUebersicht(m, kl) {
   for (const k of aktiveKategorien(kl)) {
     for (const l of leistNachTyp[k.id]) {
       const noten = kl.schueler.map(s => leistungsNote(l, s.id)).filter(n => n !== null);
-      avgZellen += `<td class="num">${fmt(mittel(noten), 2)}</td>`;
+      avgZellen += `<td class="num" style="background:${hjFarbe(l.halbjahr)}">${fmt(mittel(noten), 2)}</td>`;
     }
   }
-  avgZellen += `<td class="num">${fmt(mittel(hj1Dez), 2)}</td><td class="num">${fmt(mittel(hj2Dez), 2)}</td>`;
-  if (sys !== "np") avgZellen += `<td class="num">${fmt(mittel(jahrDez), 2)}</td>`;
+  avgZellen += `<td class="num" style="background:${hjFarbe(1, true)}">${fmt(mittel(hj1Dez), 2)}</td><td class="num" style="background:${hjFarbe(2, true)}">${fmt(mittel(hj2Dez), 2)}</td>`;
+  if (sys !== "np") avgZellen += `<td class="num" style="background:var(--jahr-bg)">${fmt(mittel(jahrDez), 2)}</td>`;
   rows += `<tr class="avg-row"><td>Ø Klasse</td>${avgZellen}</tr>`;
 
   const kennzahlen = `<div class="kennzahlen">
@@ -1135,10 +1165,15 @@ function renderUebersicht(m, kl) {
     <span class="legende-item"><span class="bsp">${chip(9, 0, false, "np")}<span class="dec">8,80</span></span> Endnote mit Dezimalwert</span>
     <span class="legende-item"><span class="bsp">${chip(10, 0, true, "np")}<span class="dec">9,50</span></span> Grenzfall bei x,5 — anklicken zum Festlegen</span>
     <span class="legende-item"><span class="bsp">${chip(9, 0, false, "np", " •")}</span> manuell festgelegt</span>
+    <span class="legende-item"><span class="hj-swatch" style="background:${hjFarbe(1, true)}"></span> Halbjahr 1</span>
+    <span class="legende-item"><span class="hj-swatch" style="background:${hjFarbe(2, true)}"></span> Halbjahr 2</span>
   </div>` : `<div class="legende">
     <span class="legende-item"><span class="bsp">${chip(2.75, 2, false, "note")}<span class="dec">2,83</span></span> gerundete Note mit Dezimalwert</span>
     <span class="legende-item"><span class="bsp">${chip(4, 0, true, "note")}<span class="dec">3,50</span></span> Grenzfall bei x,5 (Jahresnote) — anklicken zum Festlegen</span>
     <span class="legende-item"><span class="bsp">${chip(3, 2, false, "note", " •")}</span> manuell festgelegt</span>
+    <span class="legende-item"><span class="hj-swatch" style="background:${hjFarbe(1, true)}"></span> Halbjahr 1</span>
+    <span class="legende-item"><span class="hj-swatch" style="background:${hjFarbe(2, true)}"></span> Halbjahr 2</span>
+    <span class="legende-item"><span class="hj-swatch" style="background:var(--jahr-bg)"></span> Jahresnote</span>
   </div>`;
   const hinweis = infoDetails("ueb-hinweise",
     sys === "np"
@@ -1170,23 +1205,23 @@ function renderUebersicht(m, kl) {
 }
 
 function zellHalbjahr(kl, sid, hj, dez, override) {
-  if (dez === null && override == null) return "<td class='num'>–</td>";
+  if (dez === null && override == null) return `<td class="num" style="background:${hjFarbe(hj, true)}">–</td>`;
   const sys = kl.notensystem;
   const wert = override != null ? override : (sys === "np" ? rundeNP(dez) : rundeViertel(dez));
   const mark = override != null ? " •" : "";
   const grenz = override == null && dez !== null && sys === "np" && istGrenzfall(dez);
-  return `<td class="num" style="cursor:pointer" data-ov="hj${hj}" data-sid="${sid}" title="Anklicken zum Festlegen">
+  return `<td class="num" style="cursor:pointer;background:${hjFarbe(hj, true)}" data-ov="hj${hj}" data-sid="${sid}" title="Anklicken zum Festlegen">
     ${chip(wert, sys === "np" ? 0 : 2, grenz, sys, mark)}
     <span class="dec">${fmt(dez, 2)}</span></td>`;
 }
 
 function zellJahr(sid, dez, override) {
-  if (dez === null && override == null) return "<td class='num'>–</td>";
+  if (dez === null && override == null) return "<td class='num' style='background:var(--jahr-bg)'>–</td>";
   const auto = dez !== null ? rundeGanz(dez) : null;
   const wert = override != null ? override : auto;
   const grenz = override == null && dez !== null && istGrenzfall(dez);
   const mark = override != null ? " •" : "";
-  return `<td class="num" style="cursor:pointer" data-ov="jahr" data-sid="${sid}" title="Anklicken zum Festlegen">
+  return `<td class="num" style="cursor:pointer;background:var(--jahr-bg)" data-ov="jahr" data-sid="${sid}" title="Anklicken zum Festlegen">
     ${chip(wert, 0, grenz, undefined, mark)}
     <span class="dec">${fmt(dez, 2)}</span></td>`;
 }
@@ -1465,7 +1500,7 @@ function renderLeistungEingabe(m, kl) {
   } else {
     /* Direkte Noteneingabe */
     const npModus = l.system === "np";
-    html += `<h3>${npModus ? "Noteneingabe (Notenpunkte 0–15)" : "Noteneingabe (1,00 – 6,00, Viertelnoten empfohlen)"}</h3>
+    html += `<h3>${npModus ? "Noteneingabe (Notenpunkte 0–15)" : "Noteneingabe (1,00 – 6,00, Dezimalnoten)"}</h3>
       <div class="table-scroll"><table><tr><th>Schüler/in</th><th class="num">${npModus ? "NP" : "Note"}</th></tr>`;
     for (const s of kl.schueler) {
       const e = l.noten[s.id];
