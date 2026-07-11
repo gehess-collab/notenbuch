@@ -28,7 +28,7 @@ State is `{ version, klassen: [] }`. Each `klasse` has `schueler`, `leistungen`,
 The two systems invert direction (best grade is the min for `note`, the max for `np`), so grade math throughout branches on `system`/`notensystem`. `NP_BAND` maps 0–15 back onto the 1–6 color bands (`g1`–`g6`).
 
 **Calculation chain (bottom-up):**
-- `leistungsNote(l, sid)` — one student's grade on one Leistung. Either a directly-entered `note`, or derived from per-Teilaufgabe points (`vp`) summed and looked up in `l.schluessel` via `noteAusSchluessel`.
+- `leistungsNote(l, sid)` — one student's grade on one Leistung, branching on `l.modus`: a directly-entered `note`; per-Teilaufgabe points (`vp`) summed and looked up in `l.schluessel` (`{note, minVP}` rows) via `noteAusSchluessel`; or (`modus: "diktat"`) an entered Fehleranzahl looked up in `l.schluessel` (`{note, maxFehler}` rows — inverted direction, fewer errors is better) via `noteAusFehlerschluessel`.
 - `kategorieSchnitt(kl, sid, kategorie, hj)` — weighted mean of all Leistungen in a category, each Leistung weighted by its `gewicht` (a per-Leistung *Faktor*).
 - `gesamtDezimal(kl, sid, hj)` — weighted mean across top-level categories by category `gewicht` (percent).
 - `jahresDezimal` = `gesamtDezimal(..., null)` (whole year; `note` system only).
@@ -37,7 +37,7 @@ The two systems invert direction (best grade is the min for `note`, the max for 
 1. A missing entry (`leistungsNote` returns `null`) means "not planned for this student" and is **excluded**, never counted as 0. Preserve this.
 2. **Category folding** (`kat.faltetZu`): a category can fold into another (e.g. "Test" or "GFS" counts toward "Klassenarbeit") instead of carrying its own weight. `kategorieVon(kl, id)` resolves a Leistung's type to its effective top-level category. Only categories that are `aktiv` and have no `faltetZu` contribute a percent weight; those weights are meant to sum to 100 (checked/shown in the Gewichtung view, but not enforced — missing categories are renormalized per student).
 
-**Notenschlüssel** (points→grade thresholds) generators: `notenschluesselLinear`, `notenschluesselKnick` (two-segment interpolation with a bend at grade 4), and `notenschluesselKursstufeFix` (fixed 30-VP table). Thresholds are stored per-Leistung in `l.schluessel` and are hand-editable in the UI.
+**Notenschlüssel** (points→grade thresholds) generators: `notenschluesselLinear`, `notenschluesselKnick` (two-segment interpolation with a bend at grade 4), and `notenschluesselKursstufeFix` (fixed 30-VP table). Thresholds are stored per-Leistung in `l.schluessel` and are hand-editable in the UI. For `modus: "diktat"` (Diktate, `note` system only), `notenschluesselDiktat(wortzahl, prozent4, prozent6)` generates an errors-based schluessel the same two-segment way (bend at grade 4), anchored at 0 Fehler for grade 1 and at the given percentages of `l.wortzahl` for grades 4 and 6 (`l.diktatAnker`).
 
 **Overrides** (`kl.overrides[sid]`): teachers can manually pin a `hj1`/`hj2`/`jahr` grade, overriding the computed value. Borderline cases at x.5 (`istGrenzfall`) are flagged orange to invite an override.
 

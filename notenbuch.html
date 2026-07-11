@@ -259,6 +259,14 @@
   }
   .option .fields label { margin-bottom: 3px; }
   .option .apply { align-self: flex-start; margin-top: 2px; }
+  .option .fields.fields-boxed { gap: 14px; }
+  .option .fields.fields-boxed > div {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .option .fields.fields-boxed label { font-weight: 700; color: var(--ink); }
   /* Aktions-Button: klar sichtbar, aber unter dem globalen Speichern-Primary */
   button.action {
     border-color: #ccd9f5;
@@ -541,11 +549,46 @@ function noteAusSchluessel(schluessel, vp, system) {
   return beste;
 }
 
+function notenschluesselDiktat(wortzahl, fehler1, prozent4, prozent6, halbeFehler = true) {
+  // Zwei linear interpolierte Segmente wie beim Knick-Schlüssel, aber in Fehlern statt VP:
+  //   Note 1 (fehler1 erlaubte Fehler, absolut) ↔ Note 4 (prozent4 % der Wortzahl) ↔ Note 6 (prozent6 % der Wortzahl)
+  // fehler1 ist eine absolute Fehleranzahl (kein Prozentwert) und optional (Standard 0 Fehler);
+  // prozent6 ist optional: fehlt sie, wird die Steigung von Note 1→4 einfach bis Note 6 fortgeführt.
+  // halbeFehler steuert die Rundung der Schwellwerte: auf 0,5 (z. B. für halbe Fehlerpunkte) oder auf ganze Fehler.
+  fehler1 = fehler1 ?? 0;
+  const fehler4 = wortzahl * prozent4 / 100;
+  const fehler6 = (prozent6 === null || prozent6 === undefined || isNaN(prozent6))
+    ? fehler4 + (fehler4 - fehler1) * 2 / 3
+    : wortzahl * prozent6 / 100;
+  const schritt = halbeFehler ? 0.5 : 1;
+  const rows = [];
+  for (let n = 1; n <= 6.001; n += 0.25) {
+    const note = Math.round(n * 4) / 4;
+    const fehler = note <= 4
+      ? fehler1 + (note - 1) / 3 * (fehler4 - fehler1)
+      : fehler4 + (note - 4) / 2 * (fehler6 - fehler4);
+    rows.push({ note, maxFehler: Math.round(fehler / schritt) * schritt });
+  }
+  return rows;
+}
+
+function noteAusFehlerschluessel(schluessel, fehler) {
+  // beste (kleinste) Note, deren Fehlerschwelle nicht überschritten wird
+  let beste = 6;
+  for (const r of schluessel) {
+    if (fehler <= r.maxFehler && r.note < beste) beste = r.note;
+  }
+  return beste;
+}
+
 function leistungsNote(l, sid) {
   const e = l.noten[sid];
   if (!e) return null;
   if (l.modus === "note") {
     return (typeof e.note === "number" && !isNaN(e.note)) ? e.note : null;
+  }
+  if (l.modus === "diktat") {
+    return (typeof e.fehler === "number" && !isNaN(e.fehler)) ? noteAusFehlerschluessel(l.schluessel, e.fehler) : null;
   }
   if (!Array.isArray(e.vp)) return null;
   const eingegeben = e.vp.some(v => typeof v === "number" && !isNaN(v));
@@ -1266,7 +1309,7 @@ function renderLeistungen(m, kl) {
     items += `<div class="leistung-item">
       <span class="typ-badge">${kategorieLabel(kl, l.typ)}</span>
       <strong>${escapeHtml(l.titel)}</strong>
-      <span class="hint">HJ${l.halbjahr} · ${l.datum || "ohne Datum"} · Faktor ${l.gewicht} · ${l.modus === "punkte" ? maxVPvon(l) + " VP" : "direkte Note"} · ${anz}/${kl.schueler.length} erfasst</span>
+      <span class="hint">HJ${l.halbjahr} · ${l.datum || "ohne Datum"} · Faktor ${l.gewicht} · ${l.modus === "punkte" ? maxVPvon(l) + " VP" : l.modus === "diktat" ? (l.wortzahl || 0) + " Wörter" : "direkte Note"} · ${anz}/${kl.schueler.length} erfasst</span>
       <span class="spacer"></span>
       <button class="small primary" data-open="${l.id}">Noten eingeben</button>
       <button class="small" data-edit="${l.id}">Bearbeiten</button>
@@ -1317,6 +1360,7 @@ function leistungDialog(id) {
         <select id="dModus">
           <option value="punkte" ${!l || l.modus === "punkte" ? "selected" : ""}>Punkte + Teilaufgaben</option>
           <option value="note" ${l && l.modus === "note" ? "selected" : ""}>Note direkt</option>
+          ${kl.notensystem !== "np" ? `<option value="diktat" ${l && l.modus === "diktat" ? "selected" : ""}>Diktat (Fehleranzahl)</option>` : ""}
         </select></div>
     </div>
     <p class="info" style="margin-top:10px">Der Faktor gewichtet diese Leistung innerhalb ihrer Kategorie (z. B. Test mit Faktor 0,5 zählt halb so viel wie einer mit 1). Neue Kategorien und ob eine Kategorie zu einer anderen "gefaltet" wird, legst du unter „Gewichtung" fest. Notensystem dieser Klasse: <strong>${kl.notensystem === "np" ? "Notenpunkte 0–15 (Kursstufe)" : "Note 1–6"}</strong>.</p>
@@ -1367,6 +1411,11 @@ function leistungDialog(id) {
         l.teilaufgaben = [{ name: "Aufgabe 1", max: 10 }];
         l.schluessel = notenschluesselLinear(10, l.system);
       }
+      if (modus === "diktat" && !l.wortzahl) {
+        l.wortzahl = 100;
+        l.diktatAnker = { fehler1: null, prozent4: 12, prozent6: null, halbeFehler: true };
+        l.schluessel = notenschluesselDiktat(100, null, 12, null, true);
+      }
     } else {
       const neu = {
         id: uid(), titel,
@@ -1377,7 +1426,11 @@ function leistungDialog(id) {
         modus,
         system: kl.notensystem || "note",
         teilaufgaben: modus === "punkte" ? [{ name: "Aufgabe 1", max: 10 }] : [],
-        schluessel: modus === "punkte" ? notenschluesselLinear(10, kl.notensystem) : [],
+        wortzahl: modus === "diktat" ? 100 : 0,
+        diktatAnker: modus === "diktat" ? { fehler1: null, prozent4: 12, prozent6: null, halbeFehler: true } : null,
+        schluessel: modus === "punkte" ? notenschluesselLinear(10, kl.notensystem)
+          : modus === "diktat" ? notenschluesselDiktat(100, null, 12, null, true)
+          : [],
         noten: {}
       };
       kl.leistungen.push(neu);
@@ -1497,6 +1550,48 @@ function renderLeistungEingabe(m, kl) {
       ${l.teilaufgaben.map((t, i) => `<td class="num" data-avg-ta="${i}"></td>`).join("")}
       <td class="num" id="avgSum"></td><td class="num" id="avgNote"></td></tr>`;
     html += `</table></div>`;
+  } else if (l.modus === "diktat") {
+    /* Diktat: Fehler-Notenspiegel aus Wortzahl + Fehleranteil für Note 4 / Note 6 */
+    const anker = l.diktatAnker || {};
+    const fehler1 = anker.fehler1 ?? null;
+    const prozent4 = anker.prozent4 ?? 12;
+    const prozent6 = anker.prozent6 ?? null;
+    const halbeFehler = anker.halbeFehler ?? true;
+    const fehlerStep = halbeFehler ? "0.5" : "1";
+    html += `<h3>Fehler-Notenspiegel</h3>
+      <p class="info">Wortzahl des Diktattextes eintragen sowie den Fehleranteil (in % der Wörter), ab dem es eine 4 gibt. Die erlaubte Fehleranzahl für Note 1 (Standard 0 Fehler) ist optional und wird als feste Anzahl statt als Prozentwert angegeben (z. B. 1, wenn auch mit einem Fehler noch die 1 vergeben wird). Der Fehleranteil für Note 6 ist optional — bleibt er leer, wird die Steigung von Note 1 auf 4 einfach fortgeführt. Dazwischen wird linear interpoliert; die Schwellwerte in der Tabelle darunter bleiben danach frei editierbar.</p>
+      <div class="optiongroup">
+        <div class="option">
+          <div class="fields fields-boxed">
+            <div><label>Wortzahl</label><input type="number" min="1" step="1" id="dktWortzahl" value="${l.wortzahl || 100}"></div>
+            <div><label>Fehleranzahl erlaubt für Note 1 <span class="hint">(optional)</span></label>
+              <input type="number" min="0" step="${fehlerStep}" id="dktFehler1" placeholder="0" value="${fehler1 ?? ""}" style="width:60px"></div>
+            <div><label>Fehleranteil für Note 4</label>
+              <span style="white-space:nowrap"><input type="number" min="0" max="100" step="0.5" id="dktProzent4" value="${prozent4}" style="width:60px"> %</span></div>
+            <div><label>Fehleranteil für Note 6 <span class="hint">(optional)</span></label>
+              <span style="white-space:nowrap"><input type="number" min="0" max="100" step="0.5" id="dktProzent6" placeholder="auto" value="${prozent6 ?? ""}" style="width:60px"> %</span></div>
+          </div>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin-top:4px">
+            <input type="checkbox" id="dktHalbeFehler" ${halbeFehler ? "checked" : ""}> Halbe Fehler zulassen (z.&nbsp;B. 0,5 für Zeichensetzung)</label>
+          <div class="hint" id="dktFehlerAnzeige"></div>
+          <button class="action small apply" id="btnDiktatErzeugen">Fehler-Notenspiegel erzeugen</button>
+        </div>
+      </div>
+      <div class="table-scroll"><table><tr><th>Note</th>${l.schluessel.map(r => `<th class="num">${fmt(r.note, 2)}</th>`).join("")}</tr>
+      <tr><th>Fehler bis</th>${l.schluessel.map((r, i) => `<td class="num"><input type="number" step="${fehlerStep}" min="0" data-sfehler="${i}" value="${r.maxFehler}"></td>`).join("")}</tr></table></div>`;
+
+    html += `<h3>Fehlereingabe</h3><div class="table-scroll"><table>
+      <tr><th>Schüler/in</th><th class="num">Fehler</th><th class="num">Note</th></tr>`;
+    for (const s of kl.schueler) {
+      const e = l.noten[s.id];
+      const v = e && typeof e.fehler === "number" ? e.fehler : "";
+      const n = leistungsNote(l, s.id);
+      html += `<tr><td>${escapeHtml(s.name)}</td>
+        <td class="num"><input type="number" min="0" step="${fehlerStep}" data-fehler="${s.id}" value="${v}"></td>
+        <td class="num" id="note-${s.id}">${n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, 2)}</span>`}</td></tr>`;
+    }
+    html += `<tr class="avg-row"><td>Ø Klasse</td><td class="num"></td><td class="num" id="avgNote"></td></tr>`;
+    html += `</table></div>`;
   } else {
     /* Direkte Noteneingabe */
     const npModus = l.system === "np";
@@ -1614,6 +1709,67 @@ function renderLeistungEingabe(m, kl) {
       const n = leistungsNote(l, sid);
       document.getElementById("sum-" + sid).textContent = n === null ? "–" : fmt(vpSumme(l, sid), 1);
       document.getElementById("note-" + sid).innerHTML = n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, l.system === "np" ? 0 : 2)}</span>`;
+      avgAktualisieren();
+      markiereAenderung();
+    });
+  } else if (l.modus === "diktat") {
+    const wortzahlInp = $("#dktWortzahl"), f1Inp = $("#dktFehler1"), p4Inp = $("#dktProzent4"), p6Inp = $("#dktProzent6");
+    const halbeFehlerInp = $("#dktHalbeFehler");
+    const fehlerAnzeige = $("#dktFehlerAnzeige");
+    const zeigeFehlerVorschau = () => {
+      const w = parseFloat(wortzahlInp.value) || 0;
+      const f1Roh = f1Inp.value.trim();
+      const f1 = f1Roh === "" ? 0 : parseFloat(f1Roh);
+      const p4 = parseFloat(p4Inp.value);
+      const p6Roh = p6Inp.value.trim();
+      const p6 = p6Roh === "" ? null : parseFloat(p6Roh);
+      if (isNaN(f1) || isNaN(p4)) { fehlerAnzeige.textContent = ""; return; }
+      const schritt = halbeFehlerInp.checked ? 0.5 : 1;
+      const fehler4Roh = w * p4 / 100;
+      const fehler6Roh = p6 === null ? fehler4Roh + (fehler4Roh - f1) * 2 / 3 : (isNaN(p6) ? null : w * p6 / 100);
+      fehlerAnzeige.textContent = fehler6Roh === null ? "" :
+        `≈ ${fmt(Math.round(f1 / schritt) * schritt, 1)} Fehler bei Note 1 · ≈ ${fmt(Math.round(fehler4Roh / schritt) * schritt, 1)} Fehler bei Note 4 · ≈ ${fmt(Math.round(fehler6Roh / schritt) * schritt, 1)} Fehler bei Note 6${p6 === null ? " (automatisch)" : ""}`;
+    };
+    zeigeFehlerVorschau();
+    wortzahlInp.oninput = zeigeFehlerVorschau;
+    f1Inp.oninput = zeigeFehlerVorschau;
+    p4Inp.oninput = zeigeFehlerVorschau;
+    p6Inp.oninput = zeigeFehlerVorschau;
+    halbeFehlerInp.onchange = zeigeFehlerVorschau;
+    $("#btnDiktatErzeugen").onclick = () => {
+      const w = parseFloat(wortzahlInp.value) || 0;
+      const f1Roh = f1Inp.value.trim();
+      const f1 = f1Roh === "" ? null : parseFloat(f1Roh);
+      const p4 = parseFloat(p4Inp.value);
+      const p6Roh = p6Inp.value.trim();
+      const p6 = p6Roh === "" ? null : parseFloat(p6Roh);
+      const halbeFehler = halbeFehlerInp.checked;
+      if (!(w > 0)) return alert("Bitte eine Wortzahl größer 0 eingeben.");
+      if (f1 !== null && (isNaN(f1) || f1 < 0)) return alert("Die Fehleranzahl für Note 1 darf nicht negativ sein.");
+      if (isNaN(p4) || p4 < 0 || p4 > 100) return alert("Der Fehleranteil für Note 4 muss zwischen 0 und 100 % liegen.");
+      const fehler4Berechnet = w * p4 / 100;
+      if (!(fehler4Berechnet > (f1 ?? 0))) return alert(`Der Fehleranteil für Note 4 (≈ ${fmt(fehler4Berechnet, 1)} Fehler) muss über der Fehleranzahl für Note 1 liegen.`);
+      if (p6 !== null) {
+        if (isNaN(p6) || p6 < 0 || p6 > 100) return alert("Der Fehleranteil für Note 6 muss zwischen 0 und 100 % liegen.");
+        if (!(p6 > p4)) return alert("Der Fehleranteil für Note 6 muss größer sein als für Note 4.");
+      }
+      if (!confirm("Fehler-Notenspiegel neu erzeugen? Manuelle Anpassungen gehen verloren.")) return;
+      l.wortzahl = w;
+      l.diktatAnker = { fehler1: f1, prozent4: p4, prozent6: p6, halbeFehler };
+      l.schluessel = notenschluesselDiktat(w, f1, p4, p6, halbeFehler);
+      markiereAenderung(); renderMain();
+    };
+    m.querySelectorAll("[data-sfehler]").forEach(inp => inp.onchange = () => {
+      l.schluessel[+inp.dataset.sfehler].maxFehler = parseFloat(inp.value) || 0;
+      markiereAenderung(); renderMain();
+    });
+    m.querySelectorAll("[data-fehler]").forEach(inp => inp.oninput = () => {
+      const sid = inp.dataset.fehler;
+      const v = inp.value === "" ? null : parseFloat(inp.value);
+      if (v === null || isNaN(v)) delete l.noten[sid];
+      else l.noten[sid] = { fehler: v };
+      const n = leistungsNote(l, sid);
+      document.getElementById("note-" + sid).innerHTML = n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, 2)}</span>`;
       avgAktualisieren();
       markiereAenderung();
     });
