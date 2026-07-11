@@ -529,6 +529,7 @@ let dirty = false;
 let aktiveKlasse = null;
 let aktiveView = "uebersicht";
 let offeneLeistung = null; // Leistungs-ID im Eingabemodus
+let offenerAuszugSid = null; // Schüler-ID im Einzelauszug-Modus
 
 function neuerZustand() {
   return { version: 1, klassen: [] };
@@ -1018,6 +1019,7 @@ async function oeffnen() {
     verschluesselung = neueVerschluesselung;
     aktiveKlasse = state.klassen[0]?.id ?? null;
     offeneLeistung = null;
+    offenerAuszugSid = null;
     setDirty(false);
     aktualisierePasswortButton();
     renderAll();
@@ -1108,7 +1110,7 @@ function renderKlassenNav() {
     const b = document.createElement("button");
     b.className = "tab" + (k.id === aktiveKlasse ? " active" : "");
     b.textContent = `${k.name} · ${k.fach}${k.notensystem === "np" ? " (NP)" : ""}`;
-    b.onclick = () => { aktiveKlasse = k.id; offeneLeistung = null; renderAll(); };
+    b.onclick = () => { aktiveKlasse = k.id; offeneLeistung = null; offenerAuszugSid = null; renderAll(); };
     nav.appendChild(b);
   }
   const add = document.createElement("button");
@@ -1123,7 +1125,7 @@ function renderViewNav() {
   nav.style.display = klasse() ? "flex" : "none";
   nav.querySelectorAll("button").forEach(b => {
     b.classList.toggle("active", b.dataset.view === aktiveView);
-    b.onclick = () => { aktiveView = b.dataset.view; offeneLeistung = null; renderAll(); };
+    b.onclick = () => { aktiveView = b.dataset.view; offeneLeistung = null; offenerAuszugSid = null; renderAll(); };
   });
 }
 
@@ -1138,6 +1140,7 @@ function renderMain() {
     return;
   }
   if (offeneLeistung) return renderLeistungEingabe(m, kl);
+  if (offenerAuszugSid) return renderSchuelerAuszug(m, kl);
   if (aktiveView === "uebersicht") return renderUebersicht(m, kl);
   if (aktiveView === "leistungen") return renderLeistungen(m, kl);
   if (aktiveView === "schueler") return renderSchueler(m, kl);
@@ -1240,7 +1243,7 @@ function renderUebersicht(m, kl) {
   let grenzfaelle = 0;
   const hj1Dez = [], hj2Dez = [], jahrDez = [];
   for (const s of kl.schueler) {
-    rows += `<tr><td><strong>${escapeHtml(s.name)}</strong></td>`;
+    rows += `<tr><td><strong>${escapeHtml(s.name)}</strong> <button class="small" data-auszug="${s.id}" title="Einzelauszug für ${escapeHtml(s.name)} öffnen">Auszug</button></td>`;
     for (const k of aktiveKategorien(kl)) {
       for (const l of leistNachTyp[k.id]) {
         const n = leistungsNote(l, s.id);
@@ -1328,6 +1331,7 @@ function renderUebersicht(m, kl) {
   m.querySelectorAll("[data-ov]").forEach(el => {
     el.onclick = () => overrideDialog(el.dataset.ov, el.dataset.sid);
   });
+  m.querySelectorAll("[data-auszug]").forEach(b => b.onclick = () => { offenerAuszugSid = b.dataset.auszug; renderMain(); });
   $("#btnCSV").onclick = () => exportCSV(kl);
   $("#btnPDF").onclick = () => window.print();
 }
@@ -1382,6 +1386,76 @@ function overrideDialog(feld, sid) {
   }
   markiereAenderung();
   renderMain();
+}
+
+/* ---------- Einzelauszug ---------- */
+// Druckbarer Auszug für genau eine Person (Elterngespräch, Zeugniskonferenz) — im Unterschied
+// zur Gesamtübersicht ohne die Noten aller anderen Schüler, daher unbedenklich zum Ausdrucken.
+function renderSchuelerAuszug(m, kl) {
+  const s = kl.schueler.find(x => x.id === offenerAuszugSid);
+  if (!s) { offenerAuszugSid = null; return renderMain(); }
+  const sys = kl.notensystem;
+
+  let kategorienHtml = "";
+  for (const top of kl.kategorien.filter(k => k.aktiv && !k.faltetZu)) {
+    const leist = kl.leistungen
+      .filter(l => kategorieVon(kl, l.typ) === top.id)
+      .sort((a, b) => (a.halbjahr - b.halbjahr) || (a.datum || "").localeCompare(b.datum || ""));
+    if (leist.length === 0) continue;
+    let zeilen = "";
+    for (const l of leist) {
+      const n = leistungsNote(l, s.id);
+      const eigeneKat = kategorieLabel(kl, l.typ);
+      zeilen += `<tr>
+        <td>${escapeHtml(l.titel)}${eigeneKat !== top.label ? ` <span class="hint">(${escapeHtml(eigeneKat)})</span>` : ""}</td>
+        <td class="num">HJ${l.halbjahr}</td>
+        <td>${l.datum || "–"}</td>
+        <td class="num" style="background:${hjFarbe(l.halbjahr)}">${n === null ? "–" : chip(n, l.system === "np" ? 0 : 2, false, l.system)}</td>
+      </tr>`;
+    }
+    const schnitt1 = kategorieSchnitt(kl, s.id, top.id, 1);
+    const schnitt2 = kategorieSchnitt(kl, s.id, top.id, 2);
+    kategorienHtml += `<h3>${escapeHtml(top.label)} (${top.gewicht} %)</h3>
+      <div class="table-scroll"><table>
+        <tr><th>Leistung</th><th>HJ</th><th>Datum</th><th>Note</th></tr>
+        ${zeilen}
+        <tr class="avg-row"><td colspan="3">Ø HJ 1</td><td class="num">${fmt(schnitt1, 2)}</td></tr>
+        <tr class="avg-row"><td colspan="3">Ø HJ 2</td><td class="num">${fmt(schnitt2, 2)}</td></tr>
+      </table></div>`;
+  }
+
+  const ov = kl.overrides[s.id] || {};
+  const h1 = gesamtDezimal(kl, s.id, 1);
+  const h2 = gesamtDezimal(kl, s.id, 2);
+  let endnoten = `<table>
+    <tr><th></th><th>${sys === "np" ? "Endnote (NP)" : "Viertelnote"}</th></tr>
+    <tr><td style="background:${hjFarbe(1, true)}">Halbjahr 1</td>${zellHalbjahr(kl, s.id, 1, h1, ov.hj1)}</tr>
+    <tr><td style="background:${hjFarbe(2, true)}">Halbjahr 2</td>${zellHalbjahr(kl, s.id, 2, h2, ov.hj2)}</tr>`;
+  if (sys !== "np") {
+    const j = jahresDezimal(kl, s.id);
+    endnoten += `<tr><td style="background:var(--jahr-bg)">Jahresnote</td>${zellJahr(s.id, j, ov.jahr)}</tr>`;
+  }
+  endnoten += `</table>`;
+
+  m.innerHTML = `<div class="card">
+    <div class="print-only"><strong>${escapeHtml(kl.name)} ${escapeHtml(kl.fach)} — ${escapeHtml(kl.schuljahr)}</strong>${sys === "np" ? " · Kursstufe (NP)" : ""}
+      <div style="font-size:0.8em;color:#666">Stand: ${new Date().toLocaleDateString("de-DE")}</div></div>
+    <div class="row" id="exportBar" style="margin-bottom:10px">
+      <button class="small" id="btnAuszugZurueck">← Zurück zur Übersicht</button>
+      <button class="small" id="btnAuszugDruck">Drucken / PDF</button>
+    </div>
+    <h2>Einzelauszug — ${escapeHtml(s.name)}</h2>
+    <p class="hint">${escapeHtml(kl.name)} ${escapeHtml(kl.fach)} · ${escapeHtml(kl.schuljahr)}</p>
+    ${kategorienHtml || "<p class='hint'>Noch keine Leistungen erfasst.</p>"}
+    <h3>Gesamt</h3>
+    <div class="table-scroll">${endnoten}</div>
+  </div>`;
+
+  $("#btnAuszugZurueck").onclick = () => { offenerAuszugSid = null; renderMain(); };
+  $("#btnAuszugDruck").onclick = () => window.print();
+  m.querySelectorAll("[data-ov]").forEach(el => {
+    el.onclick = () => overrideDialog(el.dataset.ov, el.dataset.sid);
+  });
 }
 
 /* ---------- Leistungen ---------- */
