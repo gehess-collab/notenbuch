@@ -374,9 +374,11 @@
     gap: 16px;
     flex-wrap: wrap;
   }
+  .footerbar.mitSchliessen { padding-right: 50px; }
   .footerbar .hinweisSchliessen {
-    margin-left: auto;
-    flex-shrink: 0;
+    position: absolute;
+    top: 6px;
+    right: 12px;
     width: 30px;
     height: 30px;
     padding: 0;
@@ -2056,7 +2058,9 @@ if (!hatFSA) {
     ? "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« öffnet stattdessen ein Teilen-Menü. Wähle dort „In Dateien sichern\", denselben Ordner wie beim letzten Mal und denselben Dateinamen — nur dann fragt iOS „Ersetzen?\" und überschreibt die bestehende Datei. Schlägt iOS stattdessen einen neuen Namen vor (z. B. „notenbuch 2\"), ändere ihn vor dem Speichern zurück auf den Originalnamen. Automatisches Speichern ist auf diesem Gerät nicht möglich."
     : "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« lädt die Datei stattdessen herunter (Chrome oder Edge empfohlen).";
   const infoEl = document.getElementById("autosaveInfo");
+  const footerbar = infoEl.closest(".footerbar");
   infoEl.textContent = hinweisText;
+  footerbar.classList.add("mitSchliessen");
   const btnSchliessen = document.createElement("button");
   btnSchliessen.type = "button";
   btnSchliessen.className = "hinweisSchliessen";
@@ -2066,6 +2070,7 @@ if (!hatFSA) {
   btnSchliessen.onclick = () => {
     infoEl.style.display = "none";
     btnSchliessen.style.display = "none";
+    footerbar.classList.remove("mitSchliessen");
   };
   infoEl.after(btnSchliessen);
 }
