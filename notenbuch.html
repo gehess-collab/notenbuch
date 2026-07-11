@@ -373,6 +373,17 @@
     gap: 16px;
     flex-wrap: wrap;
   }
+  .footerbar .hinweisSchliessen {
+    border: none;
+    background: transparent;
+    padding: 0 2px;
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1;
+    color: var(--muted);
+    vertical-align: middle;
+  }
+  .footerbar .hinweisSchliessen:hover { color: var(--ink); }
   @media (prefers-reduced-motion: no-preference) {
     .card { animation: fade 0.15s ease-out; }
     @keyframes fade { from { opacity: 0.6; } to { opacity: 1; } }
@@ -446,6 +457,7 @@ function aktiveKategorien(kl) {
 let state = neuerZustand();
 let fileHandle = null;
 let letzterDateiname = "notenbuch.json"; // fürs Web-Share-Speichern ohne fileHandle (iOS u. Ä.)
+let dateiAktiv = false; // ohne Dateisystem-API (iOS u. Ä.) gibt es kein fileHandle als Signal — dieses Flag ersetzt es für den Datei-Status
 let verschluesselung = null; // null = unverschlüsselt, sonst { key, saltB64, iterationen } der offenen Datei
 let dirty = false;
 let aktiveKlasse = null;
@@ -687,8 +699,9 @@ const dateiTypen = [{ description: "Notenbuch-Datei", accept: { "application/jso
 function setDirty(d) {
   dirty = d;
   const st = document.getElementById("fileStatus");
-  const name = fileHandle ? fileHandle.name : "Keine Datei geöffnet";
-  st.textContent = name + (d ? " — ungespeicherte Änderungen" : (fileHandle ? " — gespeichert" : ""));
+  const offen = fileHandle || dateiAktiv;
+  const name = fileHandle ? fileHandle.name : (dateiAktiv ? letzterDateiname : "Keine Datei geöffnet");
+  st.textContent = name + (d ? " — ungespeicherte Änderungen" : (offen ? " — gespeichert" : ""));
   st.classList.toggle("dirty", d);
 }
 
@@ -934,6 +947,7 @@ async function oeffnen() {
     // Erst nach erfolgreichem Entsperren übernehmen — sonst würde ein abgebrochenes Entsperren
     // spätere Autosaves versehentlich in die neu ausgewählte (noch verschlüsselte) Datei schreiben.
     if (neuerHandle) fileHandle = neuerHandle;
+    dateiAktiv = true;
     state = neuerState;
     verschluesselung = neueVerschluesselung;
     aktiveKlasse = state.klassen[0]?.id ?? null;
@@ -975,6 +989,7 @@ async function speichern(alsNeu = false) {
           // (Datei + separater Text aus dem Titel), was beim Sichern in "Dateien" zu einer zusätzlichen
           // .txt-Datei und einer Kopie statt eines Überschreibens führt.
           await navigator.share({ files: [datei] });
+          dateiAktiv = true;
           setDirty(false);
           return;
         } catch (e) {
@@ -986,6 +1001,7 @@ async function speichern(alsNeu = false) {
       a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
       a.download = letzterDateiname;
       a.click();
+      dateiAktiv = true;
       setDirty(false);
     }
   } catch (e) { if (e && e.name !== "AbortError") alert("Speichern fehlgeschlagen."); }
@@ -2024,9 +2040,20 @@ aktualisierePasswortButton();
 if (!hatFSA) {
   const kannWebShareDateien = !!(navigator.canShare && navigator.share &&
     navigator.canShare({ files: [new File(["x"], "test.json", { type: "application/json" })] }));
-  document.getElementById("autosaveInfo").textContent = kannWebShareDateien
+  const hinweisText = kannWebShareDateien
     ? "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« öffnet stattdessen ein Teilen-Menü. Wähle dort „In Dateien sichern\", denselben Ordner wie beim letzten Mal und denselben Dateinamen — nur dann fragt iOS „Ersetzen?\" und überschreibt die bestehende Datei. Schlägt iOS stattdessen einen neuen Namen vor (z. B. „notenbuch 2\"), ändere ihn vor dem Speichern zurück auf den Originalnamen. Automatisches Speichern ist auf diesem Gerät nicht möglich."
     : "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« lädt die Datei stattdessen herunter (Chrome oder Edge empfohlen).";
+  const infoEl = document.getElementById("autosaveInfo");
+  infoEl.textContent = "";
+  infoEl.append(hinweisText + " ");
+  const btnSchliessen = document.createElement("button");
+  btnSchliessen.type = "button";
+  btnSchliessen.className = "hinweisSchliessen";
+  btnSchliessen.textContent = "✕";
+  btnSchliessen.title = "Hinweis schließen";
+  btnSchliessen.setAttribute("aria-label", "Hinweis schließen");
+  btnSchliessen.onclick = () => { infoEl.style.display = "none"; };
+  infoEl.append(btnSchliessen);
 }
 
 renderAll();
