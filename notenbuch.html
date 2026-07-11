@@ -398,13 +398,30 @@
     color: var(--accent-dunkel);
     border-color: var(--accent);
   }
+  .update-banner {
+    display: none;
+    background: var(--accent);
+    color: #fff;
+    padding: 8px 18px;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+  }
+  .update-banner button {
+    background: #fff;
+    color: var(--accent-dunkel);
+    border-color: #fff;
+  }
+  .update-banner button:hover { background: var(--accent-soft); }
+  .update-banner #btnUpdateDismiss { margin-left: auto; padding: 4px 10px; }
   @media (prefers-reduced-motion: no-preference) {
     .card { animation: fade 0.15s ease-out; }
     @keyframes fade { from { opacity: 0.6; } to { opacity: 1; } }
   }
   .print-only { display: none; }
   @media print {
-    header, nav.klassen, nav.views, .footerbar, #exportBar { display: none !important; }
+    header, nav.klassen, nav.views, .footerbar, .update-banner, #exportBar { display: none !important; }
     body { background: #fff; }
     main { padding: 0; }
     .card { border: none; padding: 0; margin-bottom: 0; }
@@ -416,6 +433,12 @@
 </style>
 </head>
 <body>
+
+<div class="update-banner" id="updateBanner">
+  <span>Es ist eine neuere Version dieser Seite verfügbar.</span>
+  <button type="button" id="btnUpdateReload">Jetzt neu laden</button>
+  <button type="button" id="btnUpdateDismiss" title="Hinweis schließen" aria-label="Hinweis schließen">✕</button>
+</div>
 
 <header>
   <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0">
@@ -449,6 +472,35 @@
 
 <script>
 "use strict";
+
+/* ================= Update-Erkennung ================= */
+// iOS liefert die Seite beim Öffnen des Home-Bildschirm-Icons oft aus einem eingefrorenen
+// Zustand zurück, statt sie neu zu laden — und selbst ein echtes Neuladen kann durch HTTP-
+// Caching (v. a. beim GitHub-Pages-Hosting) eine veraltete Fassung zeigen. Deshalb wird beim
+// Start einmal die eigene Seite als Vergleichsbasis geholt und bei jedem Zurückkehren in den
+// Vordergrund erneut unter Umgehung des Caches geprüft, ob sich der Inhalt geändert hat.
+let startseiteHtml = null;
+fetch(location.href).then(r => r.ok ? r.text() : null).then(t => { startseiteHtml = t; }).catch(() => {});
+
+let letzterUpdateCheck = 0;
+async function pruefeAufUpdate() {
+  if (startseiteHtml === null) return;
+  const jetzt = Date.now();
+  if (jetzt - letzterUpdateCheck < 30000) return; // nicht öfter als alle 30s prüfen
+  letzterUpdateCheck = jetzt;
+  try {
+    const res = await fetch(location.href, { cache: "reload" });
+    if (!res.ok) return;
+    const frisch = await res.text();
+    if (frisch !== startseiteHtml) {
+      document.getElementById("updateBanner").style.display = "flex";
+    }
+  } catch (e) { /* offline o. Ä. — einfach ignorieren */ }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") pruefeAufUpdate();
+});
+window.addEventListener("pageshow", pruefeAufUpdate);
 
 /* ================= Zustand ================= */
 
@@ -2050,6 +2102,10 @@ document.getElementById("btnSave").onclick = () => speichern(false);
 document.getElementById("btnSaveAs").onclick = () => speichern(true);
 document.getElementById("btnPasswort").onclick = passwortDialog;
 aktualisierePasswortButton();
+document.getElementById("btnUpdateReload").onclick = () => location.reload();
+document.getElementById("btnUpdateDismiss").onclick = () => {
+  document.getElementById("updateBanner").style.display = "none";
+};
 
 if (!hatFSA) {
   const kannWebShareDateien = !!(navigator.canShare && navigator.share &&
