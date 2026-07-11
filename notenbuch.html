@@ -370,20 +370,32 @@
     font-size: 0.75rem;
     color: var(--muted);
     display: flex;
+    align-items: center;
     gap: 16px;
     flex-wrap: wrap;
   }
   .footerbar .hinweisSchliessen {
-    border: none;
-    background: transparent;
-    padding: 0 2px;
-    margin: 0;
-    font-size: 0.85rem;
+    margin-left: auto;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 1.05rem;
+    font-weight: 600;
     line-height: 1;
-    color: var(--muted);
-    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
-  .footerbar .hinweisSchliessen:hover { color: var(--ink); }
+  .footerbar .hinweisSchliessen:hover {
+    background: var(--accent-soft);
+    color: var(--accent-dunkel);
+    border-color: var(--accent);
+  }
   @media (prefers-reduced-motion: no-preference) {
     .card { animation: fade 0.15s ease-out; }
     @keyframes fade { from { opacity: 0.6; } to { opacity: 1; } }
@@ -2044,16 +2056,18 @@ if (!hatFSA) {
     ? "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« öffnet stattdessen ein Teilen-Menü. Wähle dort „In Dateien sichern\", denselben Ordner wie beim letzten Mal und denselben Dateinamen — nur dann fragt iOS „Ersetzen?\" und überschreibt die bestehende Datei. Schlägt iOS stattdessen einen neuen Namen vor (z. B. „notenbuch 2\"), ändere ihn vor dem Speichern zurück auf den Originalnamen. Automatisches Speichern ist auf diesem Gerät nicht möglich."
     : "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« lädt die Datei stattdessen herunter (Chrome oder Edge empfohlen).";
   const infoEl = document.getElementById("autosaveInfo");
-  infoEl.textContent = "";
-  infoEl.append(hinweisText + " ");
+  infoEl.textContent = hinweisText;
   const btnSchliessen = document.createElement("button");
   btnSchliessen.type = "button";
   btnSchliessen.className = "hinweisSchliessen";
   btnSchliessen.textContent = "✕";
   btnSchliessen.title = "Hinweis schließen";
   btnSchliessen.setAttribute("aria-label", "Hinweis schließen");
-  btnSchliessen.onclick = () => { infoEl.style.display = "none"; };
-  infoEl.append(btnSchliessen);
+  btnSchliessen.onclick = () => {
+    infoEl.style.display = "none";
+    btnSchliessen.style.display = "none";
+  };
+  infoEl.after(btnSchliessen);
 }
 
 renderAll();
