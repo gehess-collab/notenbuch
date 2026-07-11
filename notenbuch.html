@@ -971,7 +971,10 @@ async function speichern(alsNeu = false) {
       const kannTeilen = !!(navigator.canShare && navigator.canShare({ files: [datei] }));
       if (kannTeilen) {
         try {
-          await navigator.share({ files: [datei], title: "Notenbuch" });
+          // Kein "title" mitgeben: iOS zerlegt "files" + "title" sonst in zwei Freigabe-Elemente
+          // (Datei + separater Text aus dem Titel), was beim Sichern in "Dateien" zu einer zusätzlichen
+          // .txt-Datei und einer Kopie statt eines Überschreibens führt.
+          await navigator.share({ files: [datei] });
           setDirty(false);
           return;
         } catch (e) {
@@ -2022,7 +2025,7 @@ if (!hatFSA) {
   const kannWebShareDateien = !!(navigator.canShare && navigator.share &&
     navigator.canShare({ files: [new File(["x"], "test.json", { type: "application/json" })] }));
   document.getElementById("autosaveInfo").textContent = kannWebShareDateien
-    ? "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« öffnet stattdessen ein Teilen-Menü. Wähle dort „In Dateien sichern\" und überschreibe deine bestehende Notenbuch-Datei. Automatisches Speichern ist auf diesem Gerät nicht möglich."
+    ? "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« öffnet stattdessen ein Teilen-Menü. Wähle dort „In Dateien sichern\", denselben Ordner wie beim letzten Mal und denselben Dateinamen — nur dann fragt iOS „Ersetzen?\" und überschreibt die bestehende Datei. Schlägt iOS stattdessen einen neuen Namen vor (z. B. „notenbuch 2\"), ändere ihn vor dem Speichern zurück auf den Originalnamen. Automatisches Speichern ist auf diesem Gerät nicht möglich."
     : "Hinweis: Dieser Browser unterstützt kein direktes Speichern in die Datei — »Speichern« lädt die Datei stattdessen herunter (Chrome oder Edge empfohlen).";
 }
 

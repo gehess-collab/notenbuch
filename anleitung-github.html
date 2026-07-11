@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notenbuch — Anleitung (GitHub-Version)</title>
+</head>
+<body>
+<style>
+  :root {
+    --bg: #eef0f3;
+    --surface: #ffffff;
+    --ink: #1b1f27;
+    --muted: #5d6675;
+    --line: #e3e6ec;
+    --accent: #3b6ce7;
+    --accent-dunkel: #2c50ad;
+    --accent-soft: #edf1fb;
+    --info-bg: #f2f4f8;
+    --info-border: #c6cedd;
+    --warn-bg: #fdf4e3;
+    --warn-border: #e8a13c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #16181d; --surface: #1f232b; --ink: #e8eaee; --muted: #9aa2b0; --line: #32363f;
+      --accent: #7fa3f4; --accent-dunkel: #a8c1f7; --accent-soft: #26304a; --info-bg: #232833; --info-border: #45506a;
+      --warn-bg: #322a1a; --warn-border: #b57e2e; }
+  }
+  :root[data-theme="dark"] { --bg: #16181d; --surface: #1f232b; --ink: #e8eaee; --muted: #9aa2b0; --line: #32363f;
+    --accent: #7fa3f4; --accent-dunkel: #a8c1f7; --accent-soft: #26304a; --info-bg: #232833; --info-border: #45506a;
+    --warn-bg: #322a1a; --warn-border: #b57e2e; }
+  :root[data-theme="light"] { --bg: #eef0f3; --surface: #ffffff; --ink: #1b1f27; --muted: #5d6675; --line: #e3e6ec;
+    --accent: #3b6ce7; --accent-dunkel: #2c50ad; --accent-soft: #edf1fb; --info-bg: #f2f4f8; --info-border: #c6cedd;
+    --warn-bg: #fdf4e3; --warn-border: #e8a13c; }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .kopf {
+    background: #1b1f27;
+    color: #e8eaee;
+    padding: 34px 22px 30px;
+  }
+  .kopf-innen { max-width: 880px; margin: 0 auto; }
+  .kopf h1 { margin: 0 0 6px; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
+  .kopf h1 .akzent { color: #8db0ff; }
+  .kopf p { margin: 0; color: #a7aebb; font-size: 0.95rem; max-width: 62ch; }
+  .kopf .url {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 7px;
+    font-size: 0.85rem;
+    color: #dfe4ee;
+    word-break: break-all;
+  }
+
+  main { max-width: 880px; margin: 0 auto; padding: 28px 22px 80px; }
+
+  .schritt { margin-top: 40px; }
+  .schritt-kopf { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+  .schritt-nr {
+    flex-shrink: 0;
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    font-size: 0.95rem;
+    transform: translateY(4px);
+  }
+  .schritt h2 { margin: 0; font-size: 1.2rem; font-weight: 650; letter-spacing: -0.01em; }
+  .schritt p, .schritt li { font-size: 0.95rem; max-width: 72ch; }
+  .schritt ul, .schritt ol { padding-left: 22px; }
+  .schritt li { margin-bottom: 4px; }
+
+  .box {
+    background: var(--info-bg);
+    border-left: 3px solid var(--info-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 14px 0;
+    font-size: 0.9rem;
+    max-width: none;
+  }
+  .box.warn { background: var(--warn-bg); border-left-color: var(--warn-border); }
+  .box strong:first-child { display: block; margin-bottom: 4px; }
+  kbd, .knopf {
+    display: inline-block;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 6px;
+    padding: 0 7px;
+    font-size: 0.85em;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin: 14px 0 -1px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tab-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent-dunkel);
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    padding: 6px 12px;
+  }
+  .plattform {
+    border: 1px solid var(--line);
+    border-radius: 0 8px 8px 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    background: var(--surface);
+  }
+  .inhalt {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 26px;
+  }
+  .inhalt h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 10px; }
+  .inhalt ol { margin: 0; padding-left: 22px; columns: 2; column-gap: 32px; font-size: 0.92rem; }
+  .inhalt li { margin-bottom: 5px; break-inside: avoid; }
+  .inhalt a { color: var(--accent-dunkel); text-decoration: none; }
+  .inhalt a:hover { text-decoration: underline; }
+  @media (max-width: 620px) { .inhalt ol { columns: 1; } }
+
+  .fazit { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; max-width: 72ch; }
+</style>
+
+<div class="kopf">
+  <div class="kopf-innen">
+    <h1><span class="akzent">Noten</span>buch — Anleitung für die GitHub-Version</h1>
+    <p>Diese Version läuft direkt im Browser über eine feste Web-Adresse — ohne Datei-Download, ohne Installation. Sie eignet sich besonders für iPad und iPhone, wo eine lokal gespeicherte HTML-Datei in Safari nicht zuverlässig funktioniert. Deine Noten bleiben trotzdem ausschließlich auf deinem Gerät.</p>
+    <span class="url">https://gehess-collab.github.io/notenbuch/notenbuch.html</span>
+  </div>
+</div>
+
+<main>
+  <div class="inhalt">
+    <h2>Inhalt</h2>
+    <ol>
+      <li><a href="#s0">Was die GitHub-Version unterscheidet</a></li>
+      <li><a href="#s1">Starten &amp; zum Startbildschirm hinzufügen</a></li>
+      <li><a href="#s2">Speichern verstehen (nach Browser unterschiedlich)</a></li>
+      <li><a href="#s3">Eine Klasse anlegen</a></li>
+      <li><a href="#s4">Schüler/innen eintragen</a></li>
+      <li><a href="#s5">Eine Leistung anlegen</a></li>
+      <li><a href="#s6">Punkte eingeben &amp; Notenschlüssel</a></li>
+      <li><a href="#s7">Die Übersicht lesen</a></li>
+      <li><a href="#s8">Gewichtung einstellen</a></li>
+      <li><a href="#s9">Exportieren &amp; Drucken</a></li>
+    </ol>
+  </div>
+
+  <section class="schritt" id="s0">
+    <div class="schritt-kopf"><span class="schritt-nr">0</span><h2>Was die GitHub-Version unterscheidet</h2></div>
+    <p>Inhaltlich ist es dasselbe Notenbuch — Klassen, Noten, Berechnung, Export funktionieren identisch. Der einzige Unterschied ist, <strong>wie du die App öffnest und speicherst</strong>:</p>
+    <ul>
+      <li>Statt eine <kbd>notenbuch.html</kbd> per Doppelklick zu öffnen, rufst du eine Web-Adresse auf: <kbd>gehess-collab.github.io/notenbuch/notenbuch.html</kbd>.</li>
+      <li>Die Seite bei GitHub liefert nur die <strong>leere App-Hülle</strong> aus — also Layout und Rechenlogik, aber keine Inhalte. Deine Noten werden nie irgendwohin hochgeladen; sie existieren ausschließlich in der <kbd>.json</kbd>-Datei, die du selbst auf deinem Gerät anlegst.</li>
+      <li>Das Speicherverhalten hängt vom Browser ab (Schritt 2) — auf iPad/iPhone läuft es etwas anders als am PC, weil Safari die dafür nötige Browser-Funktion nicht unterstützt.</li>
+    </ul>
+    <div class="box">
+      <strong>ℹ️ Wann diese Version statt der lokalen Datei?</strong>
+      Auf einem PC mit Chrome oder Edge kannst du wählen: lokale <kbd>notenbuch.html</kbd> oder GitHub-Adresse — beide verhalten sich dort identisch. Auf iPad/iPhone ist die GitHub-Adresse die einzig zuverlässige Variante, da Safari bei lokal geöffneten HTML-Dateien JavaScript nicht sicher ausführt.
+    </div>
+  </section>
+
+  <section class="schritt" id="s1">
+    <div class="schritt-kopf"><span class="schritt-nr">1</span><h2>Starten &amp; zum Startbildschirm hinzufügen</h2></div>
+    <p>Rufe die Adresse oben im Browser auf. Beim ersten Start ist alles leer — das ist normal, du legst deine Daten gleich selbst an (Schritt 3).</p>
+    <div class="box">
+      <strong>ℹ️ Empfohlen: als App-Symbol anlegen</strong>
+      Auf iPad/iPhone: Teilen-Symbol <kbd>⬆️</kbd> antippen → <strong>„Zum Home-Bildschirm"</strong>. Danach startet das Notenbuch per Fingertipp im Vollbild, ohne Adressleiste, wie eine echte App.
+      Am PC genügt ein Lesezeichen auf die Adresse.
+    </div>
+  </section>
+
+  <section class="schritt" id="s2">
+    <div class="schritt-kopf"><span class="schritt-nr">2</span><h2>Speichern verstehen (nach Browser unterschiedlich)</h2></div>
+    <p>Wie beim lokalen Notenbuch liegen deine Noten <em>nicht</em> im Browser, sondern in einer eigenen <kbd>.json</kbd>-Datei. Wie diese Datei geschrieben wird, hängt aber davon ab, was dein Browser kann:</p>
+
+    <div class="tabs"><span class="tab-label">Chrome / Edge (PC, Android)</span></div>
+    <div class="plattform">
+      <p style="margin-top:0">Funktioniert genau wie die lokale Version: Klicke einmal auf <span class="knopf">Speichern</span> und wähle einen Speicherort für deine Datei, z. B. <kbd>9b_deutsch.json</kbd>. Danach speichert der Browser <strong>jede Änderung automatisch</strong> in diese Datei (Status oben in der Kopfleiste). Beim nächsten Mal: <span class="knopf">Datei öffnen</span> → Datei auswählen.</p>
+    </div>
+
+    <div class="tabs"><span class="tab-label">iPad / iPhone (Safari) &amp; andere Browser ohne Dateisystem-Zugriff</span></div>
+    <div class="plattform">
+      <p style="margin-top:0">Diese Browser dürfen nicht direkt in eine Datei schreiben. <span class="knopf">Speichern</span> öffnet stattdessen das <strong>Teilen-Menü</strong> von iOS/iPadOS:</p>
+      <ol>
+        <li>Beim allerersten Mal: Klasse(n) anlegen, dann auf <span class="knopf">Speichern</span> tippen. Im Teilen-Menü <strong>„In Dateien sichern"</strong> wählen und einen Ort aussuchen (z. B. <kbd>Auf meinem iPad</kbd> oder <kbd>iCloud Drive</kbd> → Ordner „Notenbuch"). So legst du deine <kbd>.json</kbd>-Datei einmalig an.</li>
+        <li>Ab jetzt: Datei zu Beginn der Sitzung über <span class="knopf">Datei öffnen</span> laden.</li>
+        <li><strong>Es gibt kein automatisches Speichern.</strong> Nach jeder Änderung — neue Note, neue Schülerin, geänderte Gewichtung — musst du selbst auf <span class="knopf">Speichern</span> tippen und im Teilen-Menü wieder <strong>„In Dateien sichern"</strong> wählen. Wähle dort denselben Ordner <strong>und denselben Dateinamen</strong> wie beim letzten Mal — nur dann fragt iOS „Ersetzen?" und überschreibt die bestehende Datei, statt eine Kopie anzulegen.</li>
+      </ol>
+      <div class="box warn">
+        <strong>⚠️ Bricht das Teilen-Menü ab?</strong>
+        Wenn du das Teilen-Menü ohne Auswahl schließt, bleibt die Änderung ungespeichert (kein zusätzlicher Download). Einfach erneut auf <span class="knopf">Speichern</span> tippen.
+      </div>
+      <div class="box warn">
+        <strong>⚠️ iOS schlägt einen neuen Namen vor (z. B. „notenbuch 2")?</strong>
+        Dann ändere den Namen im Sichern-Dialog vor dem Speichern von Hand zurück auf den Originalnamen (z. B. <kbd>notenbuch.json</kbd>) — sonst legt iOS eine zweite, unabhängige Datei an und deine Noten landen an zwei Orten.
+      </div>
+    </div>
+
+    <div class="box warn">
+      <strong>⚠️ Sicherung nicht vergessen</strong>
+      Die <kbd>.json</kbd>-Datei ist der einzige Ort, an dem deine Noten existieren. Sichere sie regelmäßig — auf iPad/iPhone z. B. per iCloud-Drive-Synchronisierung oder indem du sie dir selbst per Mail/AirDrop schickst; am PC reicht eine Kopie auf einen USB-Stick.
+    </div>
+  </section>
+
+  <section class="schritt" id="s3">
+    <div class="schritt-kopf"><span class="schritt-nr">3</span><h2>Eine Klasse anlegen</h2></div>
+    <p>Klicke oben links auf <span class="knopf">+ Klasse</span>. Trage Bezeichnung (z. B. „9b"), Fach und Schuljahr ein und wähle das <strong>Notensystem</strong>:</p>
+    <ul>
+      <li><strong>Note 1–6</strong> — für die Sekundarstufe I. Es gibt Halbjahresnoten (Viertelnoten) und eine Jahresnote.</li>
+      <li><strong>Notenpunkte 0–15</strong> — für die Kursstufe. Jedes Halbjahr ist eine eigenständige Endnote, es gibt keine Jahresnote.</li>
+    </ul>
+    <div class="box warn">
+      <strong>⚠️ Wichtig</strong>
+      Das Notensystem ist nach dem Anlegen fest — sonst würden bereits eingetragene Noten falsch interpretiert. Für einen Kurs mit Notenpunkten legst du einfach eine weitere Klasse an.
+    </div>
+  </section>
+
+  <section class="schritt" id="s4">
+    <div class="schritt-kopf"><span class="schritt-nr">4</span><h2>Schüler/innen eintragen</h2></div>
+    <p>Wechsle oben auf den Reiter <span class="knopf">Schüler</span>. Tippe oder füge die Namen in das große Textfeld ein — <strong>ein Name pro Zeile</strong>, z. B. „Müller, Anna". Ein Klick auf <span class="knopf">Hinzufügen</span> übernimmt alle auf einmal; die Liste wird automatisch alphabetisch sortiert.</p>
+  </section>
+
+  <section class="schritt" id="s5">
+    <div class="schritt-kopf"><span class="schritt-nr">5</span><h2>Eine Leistung anlegen</h2></div>
+    <p>Unter <span class="knopf">Leistungen</span> → <span class="knopf">+ Neue Leistung</span> legst du eine Klassenarbeit, einen Test oder eine mündliche Note an:</p>
+    <ul>
+      <li><strong>Art</strong> — die Kategorie (Klassenarbeit, Test, Mündlich, GFS …). Welche es gibt, stellst du unter „Gewichtung" ein (Schritt 8).</li>
+      <li><strong>Faktor</strong> — gewichtet die Leistung <em>innerhalb</em> ihrer Kategorie. Ein Test mit Faktor 0,5 zählt halb so viel wie einer mit Faktor 1.</li>
+      <li><strong>Erfassung</strong> — entweder <em>Punkte + Teilaufgaben</em> (die Note wird über einen Notenschlüssel berechnet) oder <em>Note direkt</em> (du trägst die fertige Note ein, z. B. für mündliche Noten).</li>
+    </ul>
+  </section>
+
+  <section class="schritt" id="s6">
+    <div class="schritt-kopf"><span class="schritt-nr">6</span><h2>Punkte eingeben &amp; Notenschlüssel</h2></div>
+    <p>Nach dem Anlegen öffnet sich die Eingabemaske (später erreichbar über <span class="knopf">Noten eingeben</span>). Von oben nach unten:</p>
+    <ol>
+      <li><strong>Teilaufgaben</strong> — lege für jede Aufgabe die maximalen Verrechnungspunkte (VP) fest. Die Gesamtpunktzahl ergibt sich automatisch.</li>
+      <li><strong>Notenschlüssel</strong> — erzeuge ihn per Knopfdruck: <em>Linear</em> verteilt die Noten gleichmäßig; <em>Mit Knick</em> lässt dich die Bestehensgrenze frei wählen (z. B. Note 4,0 ab 50 %). Jeder Schwellwert in der Tabelle bleibt danach von Hand anpassbar.</li>
+      <li><strong>Punkteeingabe</strong> — trage je Schüler/in die Punkte pro Teilaufgabe ein. Summe und Note erscheinen sofort, unten läuft der Klassendurchschnitt (Ø) live mit.</li>
+    </ol>
+    <div class="box">
+      <strong>ℹ️ Leere Felder sind okay</strong>
+      Wer fehlt, bekommt einfach keinen Eintrag. Die Leistung wird für diese Person schlicht nicht mitgerechnet — es gibt keine automatische 6.
+    </div>
+    <div class="box warn">
+      <strong>⚠️ Denk ans Speichern</strong>
+      Auf iPad/iPhone (siehe Schritt 2) läuft hier nichts automatisch mit — nach einer Eingaberunde einmal auf <span class="knopf">Speichern</span> tippen, damit nichts verloren geht.
+    </div>
+  </section>
+
+  <section class="schritt" id="s7">
+    <div class="schritt-kopf"><span class="schritt-nr">7</span><h2>Die Übersicht lesen</h2></div>
+    <p>Der Reiter <span class="knopf">Übersicht</span> ist das Herzstück: alle Leistungen, Halbjahres- und Jahresnoten auf einen Blick, oben die Kennzahlen der Klasse, unten der Durchschnitt jeder Spalte.</p>
+    <ul>
+      <li>Die gerundete Note steht groß, die kleine graue Zahl daneben ist der ungerundete Dezimalwert.</li>
+      <li><strong>Orange umrandet = Grenzfall</strong> (Dezimalwert nahe x,5). Klicke auf die Zelle, um die Note pädagogisch festzulegen.</li>
+      <li>Ein Punkt neben der Note zeigt: Diese Note wurde manuell festgelegt. Zum Zurücksetzen die Zelle anklicken und das Feld leer lassen.</li>
+    </ul>
+  </section>
+
+  <section class="schritt" id="s8">
+    <div class="schritt-kopf"><span class="schritt-nr">8</span><h2>Gewichtung einstellen</h2></div>
+    <p>Unter <span class="knopf">Gewichtung</span> bestimmst du, wie sich die Gesamtnote zusammensetzt. Jede Kategorie hat entweder eine <strong>eigene Gewichtung</strong> in Prozent (die Summe sollte 100 % ergeben) oder sie <strong>„zählt zu"</strong> einer anderen Kategorie — z. B. fließen Tests wie eine zusätzliche Klassenarbeit in deren Topf.</p>
+    <div class="box warn">
+      <strong>⚠️ Die Faktor-Regel bei „Zählt zu …"</strong>
+      Sollen mehrere Tests <em>zusammen</em> wie <em>eine</em> zusätzliche Klassenarbeit zählen, gib jedem Test den Faktor <strong>1 ÷ Anzahl der geplanten Tests</strong> (bei 4 Tests also 0,25 — wird beim Anlegen automatisch vorgeschlagen). Beim Standard-Faktor 1 zöge jeder einzelne Test so viel Gewicht wie eine ganze Klassenarbeit.
+    </div>
+    <p>Kategorien, in denen ein/e Schüler/in noch keine Note hat, werden für sie automatisch ignoriert — die übrigen Gewichte rechnen anteilig hoch. Deine Übersicht stimmt also auch mitten im Schuljahr.</p>
+  </section>
+
+  <section class="schritt" id="s9">
+    <div class="schritt-kopf"><span class="schritt-nr">9</span><h2>Exportieren &amp; Drucken</h2></div>
+    <p>Oben in der Übersicht findest du zwei Knöpfe:</p>
+    <ul>
+      <li><span class="knopf">CSV exportieren</span> — erzeugt eine Tabelle für Excel/LibreOffice (z. B. für Zeugniskonferenzen). Auf iPad/iPhone landet sie ebenfalls im Teilen-Menü zum Sichern in „Dateien".</li>
+      <li><span class="knopf">Drucken / PDF</span> — öffnet den Druckdialog; dort „Als PDF speichern" wählen. Erklärtexte und Knöpfe werden im Ausdruck automatisch ausgeblendet.</li>
+    </ul>
+  </section>
+
+  <p class="fazit">Noch Fragen offen? Viele Antworten stehen direkt in der App: Die grauen Info-Boxen und aufklappbaren „Hinweise" erklären jede Ansicht an Ort und Stelle. Und weil alles in deiner eigenen Datei liegt: Datei kopieren = Backup, Datei auf ein anderes Gerät übertragen (z. B. per iCloud, Mail oder USB-Stick) = umgezogen — unabhängig davon, über welche Adresse du das Notenbuch öffnest.</p>
+</main>
+
+</body>
+</html>
