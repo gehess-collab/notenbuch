@@ -4,6 +4,10 @@ Ein digitales Notenbuch für Lehrkräfte als eine einzige, eigenständige HTML-D
 
 **App direkt öffnen:** [gehess-collab.github.io/notenbuch/notenbuch.html](https://gehess-collab.github.io/notenbuch/notenbuch.html)
 
+![Notenbuch – Gesamtübersicht mit fiktiven Beispieldaten](screenshots/uebersicht.png)
+
+*Alle Namen und Noten im Screenshot sind frei erfunden.*
+
 ## Was kann es
 
 - **Zwei Notensysteme:** Note 1–6 (Sek I, mit Halbjahres- und Jahresnote) und Notenpunkte 0–15 (Kursstufe, je Halbjahr eine eigenständige Endnote).

@@ -157,6 +157,17 @@
   @media (max-width: 620px) { .inhalt ol { columns: 1; } }
 
   .fazit { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; max-width: 72ch; }
+
+  .screenshot { margin: 26px 0 0; }
+  .screenshot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(15,18,24,0.12);
+  }
+  .screenshot figcaption { margin-top: 8px; font-size: 0.8rem; color: var(--muted); text-align: center; }
 </style>
 
 <div class="kopf">
@@ -168,6 +179,11 @@
 </div>
 
 <main>
+  <figure class="screenshot">
+    <img src="screenshots/uebersicht.png" alt="Notenbuch – Gesamtübersicht mit fiktiven Beispieldaten" loading="lazy">
+    <figcaption>Die Übersicht (Schritt 8) mit fiktiven Beispieldaten — alle Namen und Noten sind frei erfunden.</figcaption>
+  </figure>
+
   <div class="inhalt">
     <h2>Inhalt</h2>
     <ol>
