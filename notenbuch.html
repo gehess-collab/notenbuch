@@ -578,6 +578,7 @@ let aktiveKlasse = null;
 let aktiveView = "uebersicht";
 let offeneLeistung = null; // Leistungs-ID im Eingabemodus
 let offenerAuszugSid = null; // Schüler-ID im Einzelauszug-Modus
+let tendenzDatum = heutigesDatum(); // gewählter Tag in der Tendenzeingabe (modus "tendenz")
 
 function neuerZustand() {
   return { version: 1, klassen: [] };
@@ -713,6 +714,15 @@ function noteAusFehlerschluessel(schluessel, fehler) {
   return beste;
 }
 
+// Standard-Notenwerte je Tendenzstufe (++ … --), abhängig vom Notensystem der Klasse.
+// Die schlechteste Note (6 bzw. 0 NP) bleibt bewusst unbelegt — eine einzelne "--"-Tendenz
+// soll nicht schon auf dem Niveau eines Fehlversuchs landen. Frei editierbar in der Eingabemaske.
+function tendenzSkalaStandard(system) {
+  return system === "np"
+    ? { "++": 14, "+": 11, "0": 8, "-": 5, "--": 2 }
+    : { "++": 1, "+": 2, "0": 3, "-": 4, "--": 5 };
+}
+
 function leistungsNote(l, sid) {
   const e = l.noten[sid];
   if (!e) return null;
@@ -721,6 +731,12 @@ function leistungsNote(l, sid) {
   }
   if (l.modus === "diktat") {
     return (typeof e.fehler === "number" && !isNaN(e.fehler)) ? noteAusFehlerschluessel(l.schluessel, e.fehler) : null;
+  }
+  if (l.modus === "tendenz") {
+    if (!Array.isArray(e.eintraege) || e.eintraege.length === 0) return null;
+    const skala = l.tendenzSkala || tendenzSkalaStandard(l.system);
+    const werte = e.eintraege.map(x => skala[x.wert]).filter(v => typeof v === "number" && !isNaN(v));
+    return werte.length ? werte.reduce((a, v) => a + v, 0) / werte.length : null;
   }
   if (!Array.isArray(e.vp)) return null;
   const eingegeben = e.vp.some(v => typeof v === "number" && !isNaN(v));
@@ -742,6 +758,7 @@ function kategorieSchnitt(kl, sid, kategorie, hj) {
   for (const l of kl.leistungen) {
     if (kategorieVon(kl, l.typ) !== kategorie) continue;
     if (hj && l.halbjahr !== hj) continue;
+    if (l.modus === "tendenz" && !l.uebernehmen) continue; // reine Dokumentation, fließt nicht in die Gewichtung ein
     const n = leistungsNote(l, sid);
     if (n === null) continue; // kein Eintrag = für diesen Schüler nicht vorgesehen, zählt nicht als 0
     const w = l.gewicht || 1;
@@ -1598,7 +1615,12 @@ function renderLeistungen(m, kl) {
     items += `<div class="leistung-item">
       <span class="typ-badge">${kategorieLabel(kl, l.typ)}</span>
       <strong>${escapeHtml(l.titel)}</strong>
-      <span class="hint">HJ${l.halbjahr} · ${l.datum || "ohne Datum"} · Faktor ${l.gewicht} · ${l.modus === "punkte" ? maxVPvon(l) + " VP" : l.modus === "diktat" ? (l.wortzahl || 0) + " Wörter" : "direkte Note"} · ${anz}/${kl.schueler.length} erfasst</span>
+      <span class="hint">HJ${l.halbjahr} · ${l.datum || "ohne Datum"} · Faktor ${l.gewicht} · ${
+        l.modus === "punkte" ? maxVPvon(l) + " VP"
+        : l.modus === "diktat" ? (l.wortzahl || 0) + " Wörter"
+        : l.modus === "tendenz" ? ("Tendenzen" + (l.uebernehmen ? "" : " · nur Dokumentation"))
+        : "direkte Note"
+      } · ${anz}/${kl.schueler.length} erfasst</span>
       <span class="spacer"></span>
       <button class="small primary" data-open="${l.id}">Noten eingeben</button>
       <button class="small" data-edit="${l.id}">Bearbeiten</button>
@@ -1651,10 +1673,16 @@ function leistungDialog(id) {
           <option value="punkte" ${!l || l.modus === "punkte" ? "selected" : ""}>Punkte + Teilaufgaben</option>
           <option value="note" ${l && l.modus === "note" ? "selected" : ""}>Note direkt</option>
           ${kl.notensystem !== "np" ? `<option value="diktat" ${l && l.modus === "diktat" ? "selected" : ""}>Diktat (Fehleranzahl)</option>` : ""}
+          <option value="tendenz" ${l && l.modus === "tendenz" ? "selected" : ""}>Mündliche Tendenzen (++ … −−)</option>
         </select></div>
     </div>
     <p class="info" style="margin-top:10px">Der Faktor gewichtet diese Leistung innerhalb ihrer Kategorie (z. B. Test mit Faktor 0,5 zählt halb so viel wie einer mit 1). Neue Kategorien und ob eine Kategorie zu einer anderen "gefaltet" wird, legst du unter „Gewichtung" fest. Notensystem dieser Klasse: <strong>${kl.notensystem === "np" ? "Notenpunkte 0–15 (Kursstufe)" : "Note 1–6"}</strong>.</p>
     <p class="info" id="dFaltHinweis" style="margin-top:6px"></p>
+    <div class="row" id="dUebernehmenRow" style="margin-top:8px;display:none">
+      <label style="display:flex;align-items:center;gap:6px;font-weight:400">
+        <input type="checkbox" id="dUebernehmen" ${l && l.uebernehmen ? "checked" : ""}>
+        Als mündliche Note automatisch in die Gewichtung übernehmen (sonst nur Dokumentation)</label>
+    </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
       <button id="dAbbr">Abbrechen</button>
       <button class="primary" id="dOk">${l ? "Übernehmen" : "Anlegen"}</button>
@@ -1680,9 +1708,14 @@ function leistungDialog(id) {
     const faktorInput = d.querySelector("#dGewicht");
     faktorInput.value = (k && k.faltetZu && k.id !== "gfs") ? "0.25" : "1";
   };
+  const uebernehmenAktualisieren = () => {
+    d.querySelector("#dUebernehmenRow").style.display = d.querySelector("#dModus").value === "tendenz" ? "flex" : "none";
+  };
   faltHinweisAktualisieren();
   faktorVorbelegungAktualisieren();
+  uebernehmenAktualisieren();
   d.querySelector("#dTyp").onchange = () => { faltHinweisAktualisieren(); faktorVorbelegungAktualisieren(); };
+  d.querySelector("#dModus").onchange = uebernehmenAktualisieren;
 
   d.querySelector("#dAbbr").onclick = () => { d.close(); d.remove(); };
   d.querySelector("#dOk").onclick = () => {
@@ -1706,6 +1739,10 @@ function leistungDialog(id) {
         l.diktatAnker = { fehler1: null, prozent4: 12, prozent6: null, halbeFehler: true };
         l.schluessel = notenschluesselDiktat(100, null, 12, null, true);
       }
+      if (modus === "tendenz") {
+        l.uebernehmen = d.querySelector("#dUebernehmen").checked;
+        if (!l.tendenzSkala) l.tendenzSkala = tendenzSkalaStandard(l.system);
+      }
     } else {
       const neu = {
         id: uid(), titel,
@@ -1718,6 +1755,8 @@ function leistungDialog(id) {
         teilaufgaben: modus === "punkte" ? [{ name: "Aufgabe 1", max: 10 }] : [],
         wortzahl: modus === "diktat" ? 100 : 0,
         diktatAnker: modus === "diktat" ? { fehler1: null, prozent4: 12, prozent6: null, halbeFehler: true } : null,
+        tendenzSkala: modus === "tendenz" ? tendenzSkalaStandard(kl.notensystem) : null,
+        uebernehmen: modus === "tendenz" ? d.querySelector("#dUebernehmen").checked : null,
         schluessel: modus === "punkte" ? notenschluesselLinear(10, kl.notensystem)
           : modus === "diktat" ? notenschluesselDiktat(100, null, 12, null, true)
           : [],
@@ -1881,6 +1920,44 @@ function renderLeistungEingabe(m, kl) {
         <td class="num" id="note-${s.id}">${n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, 2)}</span>`}</td></tr>`;
     }
     html += `<tr class="avg-row"><td>Ø Klasse</td><td class="num"></td><td class="num" id="avgNote"></td></tr>`;
+    html += `</table></div>`;
+  } else if (l.modus === "tendenz") {
+    /* Mündliche Tendenzen: pro Tag eine Wertung ++ … -- je Schüler, gemittelt zur Note */
+    const skala = l.tendenzSkala || tendenzSkalaStandard(l.system);
+    const npModus = l.system === "np";
+    const werteReihenfolge = ["++", "+", "0", "-", "--"];
+    const beschriftung = { "++": "++", "+": "+", "0": "0", "-": "−", "--": "−−" };
+
+    html += `<p class="info">${l.uebernehmen
+      ? "Diese Leistung fließt automatisch als mündliche Note in die Berechnung ein."
+      : 'Diese Leistung dokumentiert nur — sie fließt nicht automatisch in die Berechnung ein. Über „Bearbeiten" lässt sich das ändern.'}</p>`;
+
+    html += `<h3>Skala</h3>
+      <p class="info">Jeder Tendenz ist ein ${npModus ? "Notenpunkt-" : "Noten"}wert zugeordnet, aus dem der Durchschnitt gebildet wird. Frei editierbar.</p>
+      <div class="row">${werteReihenfolge.map(w => `<div><label>${beschriftung[w]}</label>
+        <input type="number" step="${npModus ? 1 : 0.25}" data-tskala="${w}" value="${skala[w]}"></div>`).join("")}</div>`;
+
+    html += `<h3>Datum für die Eingabe</h3>
+      <p class="hint">Wähle den Tag, für den du Tendenzen einträgst. Ein Klick auf die bereits aktive Wertung eines Tages löscht den Eintrag für diesen Tag wieder.</p>
+      <input type="date" id="tendDatum" value="${tendenzDatum}">`;
+
+    html += `<h3>Tendenzeingabe — ${tendenzDatum}</h3>
+      <div class="table-scroll"><table>
+      <tr><th>Schüler/in</th><th class="num" colspan="5">Tendenz</th><th class="num">Ø</th><th>Verlauf</th></tr>`;
+    for (const s of kl.schueler) {
+      const eintraege = (l.noten[s.id] && l.noten[s.id].eintraege) || [];
+      const heutiger = eintraege.find(x => x.datum === tendenzDatum);
+      const n = leistungsNote(l, s.id);
+      const verlauf = [...eintraege].sort((a, b) => a.datum.localeCompare(b.datum)).map(x => beschriftung[x.wert]).join(" ");
+      html += `<tr><td>${escapeHtml(s.name)}</td>`;
+      werteReihenfolge.forEach(w => {
+        const aktiv = heutiger && heutiger.wert === w;
+        html += `<td class="num"><button class="small ${aktiv ? "primary" : ""}" data-tend-sid="${s.id}" data-tend-wert="${w}">${beschriftung[w]}</button></td>`;
+      });
+      html += `<td class="num" id="tnote-${s.id}">${n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, npModus ? 1 : 2)}</span>`}</td>
+        <td class="hint" id="tverlauf-${s.id}">${verlauf || "–"}</td></tr>`;
+    }
+    html += `<tr class="avg-row"><td>Ø Klasse</td><td colspan="5"></td><td class="num" id="avgNote"></td><td></td></tr>`;
     html += `</table></div>`;
   } else {
     /* Direkte Noteneingabe */
@@ -2067,6 +2144,33 @@ function renderLeistungEingabe(m, kl) {
       document.getElementById("note-" + sid).innerHTML = n === null ? "–" : `<span class="grade ${gradeClass(n, l.system)}">${fmt(n, 2)}</span>`;
       avgAktualisieren();
       markiereAenderung();
+    });
+  } else if (l.modus === "tendenz") {
+    m.querySelectorAll("[data-tskala]").forEach(inp => inp.onchange = () => {
+      const v = parseFloat(inp.value);
+      if (isNaN(v)) return;
+      l.tendenzSkala = l.tendenzSkala || tendenzSkalaStandard(l.system);
+      l.tendenzSkala[inp.dataset.tskala] = v;
+      markiereAenderung(); renderMain();
+    });
+    $("#tendDatum").onchange = e => {
+      tendenzDatum = e.target.value || heutigesDatum();
+      renderMain();
+    };
+    m.querySelectorAll("[data-tend-sid]").forEach(btn => btn.onclick = () => {
+      const sid = btn.dataset.tendSid;
+      const wert = btn.dataset.tendWert;
+      l.noten[sid] = l.noten[sid] || { eintraege: [] };
+      const eintraege = l.noten[sid].eintraege;
+      const idx = eintraege.findIndex(x => x.datum === tendenzDatum);
+      if (idx >= 0 && eintraege[idx].wert === wert) {
+        eintraege.splice(idx, 1); // Klick auf bereits aktive Wertung: Tageseintrag wieder löschen
+      } else if (idx >= 0) {
+        eintraege[idx].wert = wert;
+      } else {
+        eintraege.push({ datum: tendenzDatum, wert });
+      }
+      markiereAenderung(); renderMain();
     });
   } else {
     m.querySelectorAll("[data-note]").forEach(inp => inp.onchange = () => {
