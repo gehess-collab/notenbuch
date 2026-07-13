@@ -27,10 +27,9 @@ Die hier gehostete Version ist nur die leere App-Hülle; es werden keine Daten a
 
 `notenbuch.html` einfach im Browser öffnen (Chrome oder Edge empfohlen). Ein Build-Schritt oder Abhängigkeiten sind nicht nötig — die Datei ist vollständig selbstständig (HTML, CSS und JavaScript in einer Datei).
 
-## Anleitungen
+## Anleitung
 
 - [Anleitung zur App-Nutzung](https://gehess-collab.github.io/notenbuch/anleitung-notenbuch.html)
-- [Anleitung zur GitHub-Version (iPad/iOS)](https://gehess-collab.github.io/notenbuch/anleitung-github.html)
 
 ## Lizenz
 

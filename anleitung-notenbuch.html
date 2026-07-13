@@ -82,6 +82,7 @@
   .schritt p, .schritt li { font-size: 0.95rem; max-width: 72ch; }
   .schritt ul, .schritt ol { padding-left: 22px; }
   .schritt li { margin-bottom: 4px; }
+  .schritt h3 { font-size: 1rem; font-weight: 650; margin: 20px 0 6px; }
 
   .box {
     background: var(--info-bg);
@@ -161,7 +162,7 @@
 <div class="kopf">
   <div class="kopf-innen">
     <h1><span class="akzent">Noten</span>buch — Anleitung für den Einstieg</h1>
-    <p>Das Notenbuch ist eine Web-App für die Notenverwaltung: keine Installation, kein Konto. Du rufst sie über eine feste Adresse im Browser auf; deine Noten liegen trotzdem ausschließlich in einer eigenen Datei auf deinem Gerät, nie in einer Cloud. Diese Anleitung führt dich vom ersten Start bis zum Zeugnisexport.</p>
+    <p>Das Notenbuch ist eine Web-App für die Notenverwaltung: keine Installation, kein Konto, keine Cloud. Du rufst sie über die Adresse unten im Browser auf — das funktioniert auf jedem Gerät, insbesondere auch auf iPad/iPhone, wo eine lokal geöffnete HTML-Datei in Safari nicht zuverlässig läuft. Deine Noten liegen trotzdem ausschließlich in einer eigenen Datei auf deinem Gerät, nie auf einem Server. Diese Anleitung führt dich vom ersten Start bis zum Zeugnisexport.</p>
     <span class="url">https://gehess-collab.github.io/notenbuch/notenbuch.html</span>
   </div>
 </div>
@@ -173,12 +174,15 @@
       <li><a href="#s1">Starten &amp; zum Startbildschirm hinzufügen</a></li>
       <li><a href="#s2">Speichern verstehen</a></li>
       <li><a href="#s3">Eine Klasse anlegen</a></li>
-      <li><a href="#s4">Schüler/innen eintragen</a></li>
+      <li><a href="#s4">Schüler/innen eintragen &amp; Notizen</a></li>
       <li><a href="#s5">Eine Leistung anlegen</a></li>
-      <li><a href="#s6">Punkte eingeben &amp; Notenschlüssel</a></li>
-      <li><a href="#s7">Die Übersicht lesen</a></li>
-      <li><a href="#s8">Gewichtung einstellen</a></li>
-      <li><a href="#s9">Exportieren &amp; Drucken</a></li>
+      <li><a href="#s6">Punkte eingeben, Notenschlüssel &amp; Notenspiegel</a></li>
+      <li><a href="#s7">Diktate &amp; mündliche Tendenzen</a></li>
+      <li><a href="#s8">Die Übersicht lesen</a></li>
+      <li><a href="#s9">Einzelauszug pro Schüler/in</a></li>
+      <li><a href="#s10">Gewichtung einstellen</a></li>
+      <li><a href="#s11">Passwortschutz &amp; Rückgängig machen</a></li>
+      <li><a href="#s12">Exportieren &amp; Drucken</a></li>
     </ol>
   </div>
 
@@ -187,8 +191,16 @@
     <p>Rufe die Adresse oben in deinem Browser auf. Beim ersten Start ist alles leer — das ist normal, du legst deine Daten gleich selbst an (Schritt 3).</p>
     <div class="box">
       <strong>ℹ️ Empfohlen: als App-Symbol anlegen</strong>
-      Auf iPad/iPhone: Teilen-Symbol <kbd>⬆️</kbd> antippen → <strong>„Zum Home-Bildschirm"</strong>. Danach startet das Notenbuch per Fingertipp im Vollbild, ohne Adressleiste, wie eine echte App.
+      Auf iPad/iPhone: Teilen-Symbol <kbd>⬆️</kbd> antippen → <strong>„Zum Home-Bildschirm“</strong>. Danach startet das Notenbuch per Fingertipp im Vollbild, ohne Adressleiste, wie eine echte App.
       Am PC genügt ein Lesezeichen auf die Adresse.
+    </div>
+    <div class="box">
+      <strong>ℹ️ Alternative am PC: lokale Datei</strong>
+      Mit Chrome oder Edge kannst du die Datei <kbd>notenbuch.html</kbd> stattdessen auch lokal herunterladen und per Doppelklick öffnen — sie verhält sich dann identisch. Auf iPad/iPhone ist die Adresse oben die zuverlässige Variante, da Safari bei lokal geöffneten HTML-Dateien JavaScript nicht sicher ausführt.
+    </div>
+    <div class="box">
+      <strong>ℹ️ Update-Hinweis</strong>
+      Erscheint oben eine Leiste mit „Es ist eine neuere Version dieser Seite verfügbar“, lohnt sich ein Klick auf „Jetzt neu laden“ — deine geöffnete Datei bleibt davon unberührt, nur die App-Hülle wird aktualisiert.
     </div>
   </section>
 
@@ -205,13 +217,17 @@
     <div class="plattform">
       <p style="margin-top:0">Hier öffnet <span class="knopf">Speichern</span> stattdessen das <strong>Teilen-Menü</strong> von iOS/iPadOS:</p>
       <ol>
-        <li>Beim allerersten Mal: Klasse(n) anlegen, dann auf <span class="knopf">Speichern</span> tippen. Im Teilen-Menü <strong>„In Dateien sichern"</strong> wählen und einen Ort aussuchen (z. B. <kbd>Auf meinem iPad</kbd> oder <kbd>iCloud Drive</kbd> → Ordner „Notenbuch"). So legst du deine <kbd>.json</kbd>-Datei einmalig an.</li>
+        <li>Beim allerersten Mal: Klasse(n) anlegen, dann auf <span class="knopf">Speichern</span> tippen. Im Teilen-Menü <strong>„In Dateien sichern“</strong> wählen und einen Ort aussuchen (z. B. <kbd>Auf meinem iPad</kbd> oder <kbd>iCloud Drive</kbd> → Ordner „Notenbuch“). So legst du deine <kbd>.json</kbd>-Datei einmalig an.</li>
         <li>Ab jetzt: Datei zu Beginn der Sitzung über <span class="knopf">Datei öffnen</span> laden.</li>
-        <li><strong>Es gibt kein automatisches Speichern.</strong> Nach jeder Änderung — neue Note, neue Schülerin, geänderte Gewichtung — musst du selbst auf <span class="knopf">Speichern</span> tippen und im Teilen-Menü wieder <strong>„In Dateien sichern"</strong> wählen. iOS erkennt die gleichnamige Datei und bietet an, sie zu <strong>überschreiben</strong> — das ist der richtige Weg, keine Kopien anlegen.</li>
+        <li><strong>Es gibt kein automatisches Speichern.</strong> Nach jeder Änderung — neue Note, neue Schülerin, geänderte Gewichtung — musst du selbst auf <span class="knopf">Speichern</span> tippen und im Teilen-Menü wieder <strong>„In Dateien sichern“</strong> wählen. Wähle dort denselben Ordner <strong>und denselben Dateinamen</strong> wie beim letzten Mal — nur dann fragt iOS „Ersetzen?“ und überschreibt die bestehende Datei, statt eine Kopie anzulegen.</li>
       </ol>
       <div class="box warn">
         <strong>⚠️ Bricht das Teilen-Menü ab?</strong>
         Wenn du das Teilen-Menü ohne Auswahl schließt, bleibt die Änderung ungespeichert (kein zusätzlicher Download). Einfach erneut auf <span class="knopf">Speichern</span> tippen.
+      </div>
+      <div class="box warn">
+        <strong>⚠️ iOS schlägt einen neuen Namen vor (z. B. „notenbuch 2“)?</strong>
+        Dann ändere den Namen im Sichern-Dialog vor dem Speichern von Hand zurück auf den Originalnamen (z. B. <kbd>notenbuch.json</kbd>) — sonst legt iOS eine zweite, unabhängige Datei an und deine Noten landen an zwei Orten.
       </div>
     </div>
 
@@ -223,7 +239,7 @@
 
   <section class="schritt" id="s3">
     <div class="schritt-kopf"><span class="schritt-nr">3</span><h2>Eine Klasse anlegen</h2></div>
-    <p>Klicke oben links auf <span class="knopf">+ Klasse</span>. Trage Bezeichnung (z. B. „9b"), Fach und Schuljahr ein und wähle das <strong>Notensystem</strong>:</p>
+    <p>Klicke oben links auf <span class="knopf">+ Klasse</span>. Trage Bezeichnung (z. B. „9b“), Fach und Schuljahr ein und wähle das <strong>Notensystem</strong>:</p>
     <ul>
       <li><strong>Note 1–6</strong> — für die Sekundarstufe I. Es gibt Halbjahresnoten (Viertelnoten) und eine Jahresnote.</li>
       <li><strong>Notenpunkte 0–15</strong> — für die Kursstufe. Jedes Halbjahr ist eine eigenständige Endnote, es gibt keine Jahresnote.</li>
@@ -235,27 +251,40 @@
   </section>
 
   <section class="schritt" id="s4">
-    <div class="schritt-kopf"><span class="schritt-nr">4</span><h2>Schüler/innen eintragen</h2></div>
-    <p>Wechsle oben auf den Reiter <span class="knopf">Schüler</span>. Tippe oder füge die Namen in das große Textfeld ein — <strong>ein Name pro Zeile</strong>, z. B. „Müller, Anna". Ein Klick auf <span class="knopf">Hinzufügen</span> übernimmt alle auf einmal; die Liste wird automatisch alphabetisch sortiert.</p>
+    <div class="schritt-kopf"><span class="schritt-nr">4</span><h2>Schüler/innen eintragen &amp; Notizen</h2></div>
+    <p>Wechsle oben auf den Reiter <span class="knopf">Schüler</span>. Tippe oder füge die Namen in das große Textfeld ein — <strong>ein Name pro Zeile</strong>, z. B. „Müller, Anna“. Ein Klick auf <span class="knopf">Hinzufügen</span> übernimmt alle auf einmal; die Liste wird automatisch alphabetisch sortiert.</p>
+    <p>Neben jedem Namen öffnet <span class="knopf">📝 Notizen</span> ein Fenster für datierte Notizen — etwa ein GFS-Thema oder Gesprächsnotizen aus einem Elterngespräch.</p>
+    <div class="box">
+      <strong>ℹ️ Sichtbarkeit im Ausdruck steuern</strong>
+      Jede Notiz lässt sich einzeln als <strong>„Im Ausdruck zeigen“</strong> markieren. Ohne dieses Häkchen erscheint sie nur am Bildschirm, nicht im gedruckten Einzelauszug (Schritt 9) — praktisch für rein interne Vermerke.
+    </div>
   </section>
 
   <section class="schritt" id="s5">
     <div class="schritt-kopf"><span class="schritt-nr">5</span><h2>Eine Leistung anlegen</h2></div>
     <p>Unter <span class="knopf">Leistungen</span> → <span class="knopf">+ Neue Leistung</span> legst du eine Klassenarbeit, einen Test oder eine mündliche Note an:</p>
     <ul>
-      <li><strong>Art</strong> — die Kategorie (Klassenarbeit, Test, Mündlich, GFS …). Welche es gibt, stellst du unter „Gewichtung" ein (Schritt 8).</li>
+      <li><strong>Art</strong> — die Kategorie (Klassenarbeit, Test, Mündlich, GFS …). Welche es gibt, stellst du unter „Gewichtung“ ein (Schritt 10).</li>
       <li><strong>Faktor</strong> — gewichtet die Leistung <em>innerhalb</em> ihrer Kategorie. Ein Test mit Faktor 0,5 zählt halb so viel wie einer mit Faktor 1.</li>
-      <li><strong>Erfassung</strong> — entweder <em>Punkte + Teilaufgaben</em> (die Note wird über einen Notenschlüssel berechnet) oder <em>Note direkt</em> (du trägst die fertige Note ein, z. B. für mündliche Noten).</li>
+      <li><strong>Erfassung</strong> — wie die Note zustande kommt:
+        <ul>
+          <li><em>Punkte + Teilaufgaben</em> — die Note wird über einen Notenschlüssel berechnet (Schritt 6).</li>
+          <li><em>Note direkt</em> — du trägst die fertige Note ein.</li>
+          <li><em>Diktat (Fehleranzahl)</em> — nur im Notensystem „Note 1–6“ (Schritt 7).</li>
+          <li><em>Mündliche Tendenzen</em> — laufende Dokumentation mündlicher Mitarbeit über mehrere Tage (Schritt 7).</li>
+        </ul>
+      </li>
     </ul>
   </section>
 
   <section class="schritt" id="s6">
-    <div class="schritt-kopf"><span class="schritt-nr">6</span><h2>Punkte eingeben &amp; Notenschlüssel</h2></div>
+    <div class="schritt-kopf"><span class="schritt-nr">6</span><h2>Punkte eingeben, Notenschlüssel &amp; Notenspiegel</h2></div>
     <p>Nach dem Anlegen öffnet sich die Eingabemaske (später erreichbar über <span class="knopf">Noten eingeben</span>). Von oben nach unten:</p>
     <ol>
       <li><strong>Teilaufgaben</strong> — lege für jede Aufgabe die maximalen Verrechnungspunkte (VP) fest. Die Gesamtpunktzahl ergibt sich automatisch.</li>
       <li><strong>Notenschlüssel</strong> — erzeuge ihn per Knopfdruck: <em>Linear</em> verteilt die Noten gleichmäßig; <em>Mit Knick</em> lässt dich die Bestehensgrenze frei wählen (z. B. Note 4,0 ab 50 %). Jeder Schwellwert in der Tabelle bleibt danach von Hand anpassbar.</li>
       <li><strong>Punkteeingabe</strong> — trage je Schüler/in die Punkte pro Teilaufgabe ein. Summe und Note erscheinen sofort, unten läuft der Klassendurchschnitt (Ø) live mit.</li>
+      <li><strong>Notenspiegel</strong> — am Ende der Seite zeigt ein Balkendiagramm, wie sich die Klasse über die Notenstufen verteilt. Es aktualisiert sich automatisch bei jeder Eingabe und steht bei jeder Erfassungsart zur Verfügung, nicht nur bei Punkte-Leistungen.</li>
     </ol>
     <div class="box">
       <strong>ℹ️ Leere Felder sind okay</strong>
@@ -264,35 +293,79 @@
   </section>
 
   <section class="schritt" id="s7">
-    <div class="schritt-kopf"><span class="schritt-nr">7</span><h2>Die Übersicht lesen</h2></div>
+    <div class="schritt-kopf"><span class="schritt-nr">7</span><h2>Diktate &amp; mündliche Tendenzen</h2></div>
+
+    <h3>Diktate (Fehleranzahl)</h3>
+    <p>Statt Verrechnungspunkten trägst du hier die Anzahl der Fehler ein. Wortzahl des Diktats und den Fehleranteil eintragen, ab dem es eine Note 4 gibt (optional auch für Note 1 und Note 6) — daraus entsteht ein Fehler-Notenschlüssel (weniger Fehler = bessere Note), der wie bei Punkte-Leistungen in der Tabelle darunter von Hand nachjustierbar bleibt. Danach je Schüler/in die Fehleranzahl eintragen; die Note erscheint sofort.</p>
+
+    <h3>Mündliche Tendenzen (++ / + / 0 / − / −−)</h3>
+    <p>Gedacht für die laufende Dokumentation mündlicher Mitarbeit über das Halbjahr — statt einer einzelnen Note trägst du hier für jeden Unterrichtstag eine Tendenz je Schüler/in ein.</p>
+    <ul>
+      <li><strong>Skala</strong> — jeder der fünf Tendenzen ist ein Notenwert zugeordnet (z. B. „++“ = Note 1), aus dem der Durchschnitt gebildet wird. Frei editierbar, wie der Notenschlüssel bei Punkte-Leistungen.</li>
+      <li><strong>Datum wählen, dann antippen</strong> — oben das Datum für den aktuellen Tag einstellen, danach pro Schüler/in eine der fünf Wertungen antippen. Ein erneuter Klick auf die bereits aktive Wertung eines Tages löscht sie wieder — so lassen sich auch vergangene Tage nachträglich korrigieren.</li>
+      <li><strong>Verlauf &amp; Ø</strong> — je Schüler/in zeigt eine Spalte die bisherigen Wertungen in chronologischer Reihenfolge, eine weitere den daraus gebildeten Durchschnitt.</li>
+    </ul>
+    <div class="box">
+      <strong>ℹ️ Übernehmen oder nur dokumentieren?</strong>
+      Beim Anlegen entscheidest du per Häkchen <strong>„Als mündliche Note automatisch in die Gewichtung übernehmen“</strong>: an, damit der Durchschnitt wie eine normale mündliche Note in Halbjahres- und Jahresnote einfließt; aus, wenn die Leistung erst einmal nur der Dokumentation dienen soll. Über <span class="knopf">Bearbeiten</span> lässt sich das jederzeit nachträglich ändern — auch nicht übernommene Tendenzen bleiben dabei weiterhin in Übersicht, Notenspiegel und Einzelauszug sichtbar.
+    </div>
+  </section>
+
+  <section class="schritt" id="s8">
+    <div class="schritt-kopf"><span class="schritt-nr">8</span><h2>Die Übersicht lesen</h2></div>
     <p>Der Reiter <span class="knopf">Übersicht</span> ist das Herzstück: alle Leistungen, Halbjahres- und Jahresnoten auf einen Blick, oben die Kennzahlen der Klasse, unten der Durchschnitt jeder Spalte.</p>
     <ul>
       <li><span class="chip-demo">3,25</span> — die gerundete Note; die kleine graue Zahl daneben ist der ungerundete Dezimalwert.</li>
       <li><span class="chip-demo ring">4</span> — <strong>orange umrandet = Grenzfall</strong> (Dezimalwert nahe x,5). Klicke auf die Zelle, um die Note pädagogisch festzulegen.</li>
       <li><span class="chip-demo">4 •</span> — der Punkt zeigt: Diese Note wurde manuell festgelegt. Zum Zurücksetzen die Zelle anklicken und das Feld leer lassen.</li>
+      <li>Neben jedem Namen öffnet <span class="knopf">Auszug</span> den druckfertigen Einzelauszug dieser Person (Schritt 9).</li>
     </ul>
   </section>
 
-  <section class="schritt" id="s8">
-    <div class="schritt-kopf"><span class="schritt-nr">8</span><h2>Gewichtung einstellen</h2></div>
-    <p>Unter <span class="knopf">Gewichtung</span> bestimmst du, wie sich die Gesamtnote zusammensetzt. Jede Kategorie hat entweder eine <strong>eigene Gewichtung</strong> in Prozent (die Summe sollte 100 % ergeben) oder sie <strong>„zählt zu"</strong> einer anderen Kategorie — z. B. fließen Tests wie eine zusätzliche Klassenarbeit in deren Topf.</p>
+  <section class="schritt" id="s9">
+    <div class="schritt-kopf"><span class="schritt-nr">9</span><h2>Einzelauszug pro Schüler/in</h2></div>
+    <p>Ein Klick auf <span class="knopf">Auszug</span> in der Übersicht (Schritt 8) öffnet eine druckfertige Einzelseite für genau eine Person — ideal für ein Elterngespräch oder eine Zeugniskonferenz, ohne die Noten der übrigen Klasse preiszugeben. Sie zeigt alle Leistungen nach Kategorie sortiert, Halbjahres- und Jahresnote sowie — falls vorhanden — die Notizen dieser Person.</p>
+    <div class="box">
+      <strong>ℹ️ Notizen im Ausdruck</strong>
+      Nur Notizen mit dem Häkchen „Im Ausdruck zeigen“ (Schritt 4) erscheinen auf dem gedruckten Auszug; die übrigen sind nur am Bildschirm sichtbar.
+    </div>
+    <p>Über <span class="knopf">← Zurück zur Übersicht</span> geht es zurück, über <span class="knopf">Drucken / PDF</span> lässt sich genau diese Einzelseite drucken oder als PDF sichern.</p>
+  </section>
+
+  <section class="schritt" id="s10">
+    <div class="schritt-kopf"><span class="schritt-nr">10</span><h2>Gewichtung einstellen</h2></div>
+    <p>Unter <span class="knopf">Gewichtung</span> bestimmst du, wie sich die Gesamtnote zusammensetzt. Jede Kategorie hat entweder eine <strong>eigene Gewichtung</strong> in Prozent (die Summe sollte 100 % ergeben) oder sie <strong>„zählt zu“</strong> einer anderen Kategorie — z. B. fließen Tests wie eine zusätzliche Klassenarbeit in deren Topf. Über <span class="knopf">+ Kategorie hinzufügen</span> legst du bei Bedarf weitere Kategorien an (z. B. „Projekt“ oder „Vokabeltest“).</p>
     <div class="box warn">
-      <strong>⚠️ Die Faktor-Regel bei „Zählt zu …"</strong>
+      <strong>⚠️ Die Faktor-Regel bei „Zählt zu …“</strong>
       Sollen mehrere Tests <em>zusammen</em> wie <em>eine</em> zusätzliche Klassenarbeit zählen, gib jedem Test den Faktor <strong>1 ÷ Anzahl der geplanten Tests</strong> (bei 4 Tests also 0,25 — wird beim Anlegen automatisch vorgeschlagen). Beim Standard-Faktor 1 zöge jeder einzelne Test so viel Gewicht wie eine ganze Klassenarbeit.
     </div>
     <p>Kategorien, in denen ein/e Schüler/in noch keine Note hat, werden für sie automatisch ignoriert — die übrigen Gewichte rechnen anteilig hoch. Deine Übersicht stimmt also auch mitten im Schuljahr.</p>
   </section>
 
-  <section class="schritt" id="s9">
-    <div class="schritt-kopf"><span class="schritt-nr">9</span><h2>Exportieren &amp; Drucken</h2></div>
+  <section class="schritt" id="s11">
+    <div class="schritt-kopf"><span class="schritt-nr">11</span><h2>Passwortschutz &amp; Rückgängig machen</h2></div>
+
+    <h3>Passwortschutz</h3>
+    <p>Über den Knopf <span class="knopf">🔓 Passwortschutz</span> oben in der Kopfzeile lässt sich die Datei clientseitig verschlüsseln (mindestens 4 Zeichen). Ist der Schutz eingerichtet, zeigt der Knopf <span class="knopf">🔒 Geschützt</span>; beim nächsten Öffnen der Datei wird das Passwort abgefragt.</p>
+    <div class="box warn">
+      <strong>⚠️ Kein Zurücksetzen möglich</strong>
+      Bei vergessenem Passwort sind alle Daten in dieser Datei unwiederbringlich verloren — es gibt keine Wiederherstellung.
+    </div>
+
+    <h3>Rückgängig machen</h3>
+    <p>Löschst du versehentlich einen Schüler, eine Leistung, eine Klasse oder eine Kategorie, erscheint unten kurz ein Hinweis mit einem <span class="knopf">Rückgängig</span>-Knopf — ein Sicherheitsnetz, besonders wichtig, weil Chrome/Edge Änderungen bereits nach 1,5 Sekunden automatisch in die Datei speichern. Das Angebot gilt nur für die jeweils letzte Löschung und verschwindet nach der nächsten anderen Änderung oder von selbst nach rund 15 Sekunden.</p>
+  </section>
+
+  <section class="schritt" id="s12">
+    <div class="schritt-kopf"><span class="schritt-nr">12</span><h2>Exportieren &amp; Drucken</h2></div>
     <p>Oben in der Übersicht findest du zwei Knöpfe:</p>
     <ul>
-      <li><span class="knopf">CSV exportieren</span> — erzeugt eine Tabelle für Excel/LibreOffice (z. B. für Zeugniskonferenzen). Auf iPad/iPhone landet sie ebenfalls im Teilen-Menü zum Sichern in „Dateien".</li>
-      <li><span class="knopf">Drucken / PDF</span> — öffnet den Druckdialog; dort „Als PDF speichern" wählen. Erklärtexte und Knöpfe werden im Ausdruck automatisch ausgeblendet.</li>
+      <li><span class="knopf">CSV exportieren</span> — erzeugt eine Tabelle für Excel/LibreOffice (z. B. für Zeugniskonferenzen). Auf iPad/iPhone landet sie ebenfalls im Teilen-Menü zum Sichern in „Dateien“.</li>
+      <li><span class="knopf">Drucken / PDF</span> — öffnet den Druckdialog für die Gesamtübersicht; dort „Als PDF speichern“ wählen. Erklärtexte und Knöpfe werden im Ausdruck automatisch ausgeblendet. Für eine einzelne Person eignet sich stattdessen der Einzelauszug (Schritt 9).</li>
     </ul>
   </section>
 
-  <p class="fazit">Noch Fragen offen? Viele Antworten stehen direkt in der App: Die grauen Info-Boxen und aufklappbaren „Hinweise" erklären jede Ansicht an Ort und Stelle. Und weil alles in einer Datei liegt: Datei kopieren = Backup, Datei auf ein anderes Gerät mitnehmen = umgezogen.</p>
+  <p class="fazit">Noch Fragen offen? Viele Antworten stehen direkt in der App: Die grauen Info-Boxen und aufklappbaren „Hinweise“ erklären jede Ansicht an Ort und Stelle. Und weil alles in einer Datei liegt: Datei kopieren = Backup, Datei auf ein anderes Gerät mitnehmen = umgezogen.</p>
 </main>
 
 </body>
