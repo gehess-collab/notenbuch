@@ -470,6 +470,7 @@
     table { font-size: 10px; }
     .hint, .info, .legende { display: none; }
     .table-scroll { overflow: visible; }
+    .notiz-intern { display: none; }
   }
 </style>
 </head>
@@ -583,6 +584,11 @@ function neuerZustand() {
 }
 
 function uid() { return Math.random().toString(36).slice(2, 10); }
+// Lokales Datum (nicht UTC) im Format der <input type="date">-Felder
+function heutigesDatum() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 function neueKlasse(name, fach, schuljahr, notensystem) {
   return {
@@ -844,6 +850,9 @@ function migriere(st) {
     if (!kl.notensystem) kl.notensystem = "note";
     for (const l of kl.leistungen || []) {
       if (!l.system) l.system = kl.notensystem;
+    }
+    for (const s of kl.schueler || []) {
+      if (!s.notizen) s.notizen = [];
     }
     if (!kl.kategorien) {
       // Alte Dateien hatten ein festes gewichte-Objekt in kl.einstellungen statt kl.kategorien
@@ -1543,6 +1552,20 @@ function renderSchuelerAuszug(m, kl) {
   }
   endnoten += `</table>`;
 
+  const notizenSortiert = [...s.notizen].sort((a, b) => a.datum.localeCompare(b.datum));
+  let notizenHtml = "";
+  if (notizenSortiert.length) {
+    notizenHtml = `<h3>Notizen</h3>
+      <p class="hint">Zeilen ohne „Im Ausdruck zeigen" erscheinen nur am Bildschirm, nicht im Ausdruck.</p>
+      <div class="table-scroll"><table>
+        <tr><th style="width:110px">Datum</th><th>Notiz</th></tr>
+        ${notizenSortiert.map(n => `<tr class="${n.druckbar ? "" : "notiz-intern"}">
+          <td>${n.datum || "–"}${n.druckbar ? "" : ' <span class="hint">(nur intern)</span>'}</td>
+          <td>${escapeHtml(n.text).replace(/\n/g, "<br>")}</td>
+        </tr>`).join("")}
+      </table></div>`;
+  }
+
   m.innerHTML = `<div class="card">
     <div class="print-only"><strong>${escapeHtml(kl.name)} ${escapeHtml(kl.fach)} — ${escapeHtml(kl.schuljahr)}</strong>${sys === "np" ? " · Kursstufe (NP)" : ""}
       <div style="font-size:0.8em;color:#666">Stand: ${new Date().toLocaleDateString("de-DE")}</div></div>
@@ -1555,6 +1578,7 @@ function renderSchuelerAuszug(m, kl) {
     ${kategorienHtml || "<p class='hint'>Noch keine Leistungen erfasst.</p>"}
     <h3>Gesamt</h3>
     <div class="table-scroll">${endnoten}</div>
+    ${notizenHtml}
   </div>`;
 
   $("#btnAuszugZurueck").onclick = () => { offenerAuszugSid = null; renderMain(); };
@@ -2062,14 +2086,18 @@ function renderLeistungEingabe(m, kl) {
 /* ---------- Schüler ---------- */
 
 function renderSchueler(m, kl) {
-  let rows = kl.schueler.map((s, i) => `<tr>
+  let rows = kl.schueler.map((s, i) => {
+    const anzahl = s.notizen.length;
+    return `<tr>
     <td class="num">${i + 1}</td>
     <td><input data-sname="${s.id}" value="${escapeHtml(s.name)}" style="width:100%;border-color:transparent;background:transparent"></td>
-    <td><button class="small danger" data-sdel="${s.id}">Entfernen</button></td></tr>`).join("");
+    <td><button class="small" data-snotiz="${s.id}">📝 Notizen${anzahl ? ` (${anzahl})` : ""}</button></td>
+    <td><button class="small danger" data-sdel="${s.id}">Entfernen</button></td></tr>`;
+  }).join("");
   m.innerHTML = `<div class="card">
     <h2>Schülerliste (${kl.schueler.length})</h2>
-    <div class="table-scroll"><table style="max-width:560px">
-      <tr><th style="width:36px">#</th><th>Name</th><th style="width:110px"></th></tr>${rows}
+    <div class="table-scroll"><table style="max-width:680px">
+      <tr><th style="width:36px">#</th><th>Name</th><th style="width:150px"></th><th style="width:110px"></th></tr>${rows}
     </table></div>
     <h3>Hinzufügen</h3>
     <p class="hint">Ein Name pro Zeile, z. B. „Müller, Anna". Die Liste wird alphabetisch sortiert.</p>
@@ -2078,7 +2106,7 @@ function renderSchueler(m, kl) {
   </div>`;
   $("#btnSAdd").onclick = () => {
     const namen = $("#sNeu").value.split("\n").map(x => x.trim()).filter(Boolean);
-    for (const n of namen) kl.schueler.push({ id: uid(), name: n });
+    for (const n of namen) kl.schueler.push({ id: uid(), name: n, notizen: [] });
     kl.schueler.sort((a, b) => a.name.localeCompare(b.name, "de"));
     markiereAenderung(); renderMain();
   };
@@ -2087,6 +2115,7 @@ function renderSchueler(m, kl) {
     s.name = inp.value.trim();
     markiereAenderung();
   });
+  m.querySelectorAll("[data-snotiz]").forEach(b => b.onclick = () => notizenDialog(b.dataset.snotiz));
   m.querySelectorAll("[data-sdel]").forEach(b => b.onclick = () => {
     const s = kl.schueler.find(x => x.id === b.dataset.sdel);
     if (!confirm(`${s.name} entfernen? Alle Noten dieser Person entfallen.`)) return;
@@ -2096,6 +2125,84 @@ function renderSchueler(m, kl) {
     delete kl.overrides[s.id];
     markiereAenderung(); renderMain();
   });
+}
+
+// Dialog für datierte Notizen (GFS-Thema, Gesprächsnotizen o. Ä.) zu einem Schüler.
+// "Im Ausdruck zeigen" steuert nur, ob die Notiz im gedruckten Einzelauszug erscheint —
+// auf dem Bildschirm sind hier immer alle Notizen sichtbar.
+function notizenDialog(sid) {
+  const kl = klasse();
+  const s = kl.schueler.find(x => x.id === sid);
+  if (!s) return;
+  const d = document.createElement("dialog");
+  document.body.appendChild(d);
+
+  function zeichnen() {
+    const sortiert = [...s.notizen].sort((a, b) => b.datum.localeCompare(a.datum));
+    const zeilen = sortiert.map(n => `
+      <div class="row" style="align-items:flex-start;border-bottom:1px solid var(--line);padding:8px 0;margin:0" data-notizzeile="${n.id}">
+        <input type="date" data-notizdatum="${n.id}" value="${n.datum}" style="width:140px">
+        <textarea data-notiztext="${n.id}" rows="2" style="flex:1;min-width:180px">${escapeHtml(n.text)}</textarea>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+          <label style="font-weight:400;font-size:0.8rem;display:flex;align-items:center;gap:4px">
+            <input type="checkbox" data-notizdruck="${n.id}" ${n.druckbar ? "checked" : ""}> Im Ausdruck zeigen</label>
+          <button class="small danger" data-notizdel="${n.id}">✕ Löschen</button>
+        </div>
+      </div>`).join("");
+
+    d.innerHTML = `
+      <h2 style="margin-top:0">Notizen — ${escapeHtml(s.name)}</h2>
+      <p class="hint">Für GFS-Themen, Gesprächsnotizen o. Ä. Nur intern sichtbar, sofern nicht als „Im Ausdruck zeigen" markiert.</p>
+      <div id="notizListe">${zeilen || "<p class='hint'>Noch keine Notizen.</p>"}</div>
+      <h3>Neue Notiz</h3>
+      <div class="row" style="align-items:flex-start">
+        <input type="date" id="nnDatum" value="${heutigesDatum()}" style="width:140px">
+        <textarea id="nnText" rows="2" style="flex:1;min-width:180px" placeholder="Notiz eintragen …"></textarea>
+      </div>
+      <label style="font-weight:400;font-size:0.85rem;display:flex;align-items:center;gap:6px;margin-top:6px">
+        <input type="checkbox" id="nnDruckbar"> Im Ausdruck zeigen</label>
+      <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px">
+        <button class="primary" id="btnNotizAdd">+ Notiz hinzufügen</button>
+        <button id="btnNotizSchliessen">Schließen</button>
+      </div>`;
+
+    d.querySelectorAll("[data-notizdatum]").forEach(inp => inp.onchange = () => {
+      const n = s.notizen.find(x => x.id === inp.dataset.notizdatum);
+      n.datum = inp.value || heutigesDatum();
+      markiereAenderung(); zeichnen();
+    });
+    d.querySelectorAll("[data-notiztext]").forEach(ta => ta.onchange = () => {
+      const n = s.notizen.find(x => x.id === ta.dataset.notiztext);
+      n.text = ta.value;
+      markiereAenderung(); zeichnen();
+    });
+    d.querySelectorAll("[data-notizdruck]").forEach(cb => cb.onchange = () => {
+      const n = s.notizen.find(x => x.id === cb.dataset.notizdruck);
+      n.druckbar = cb.checked;
+      markiereAenderung(); zeichnen();
+    });
+    d.querySelectorAll("[data-notizdel]").forEach(btn => btn.onclick = () => {
+      if (!confirm("Diese Notiz löschen?")) return;
+      s.notizen = s.notizen.filter(x => x.id !== btn.dataset.notizdel);
+      markiereAenderung(); zeichnen();
+    });
+    d.querySelector("#btnNotizAdd").onclick = () => {
+      const text = d.querySelector("#nnText").value.trim();
+      if (!text) return;
+      s.notizen.push({
+        id: uid(),
+        datum: d.querySelector("#nnDatum").value || heutigesDatum(),
+        text,
+        druckbar: d.querySelector("#nnDruckbar").checked
+      });
+      markiereAenderung();
+      zeichnen();
+    };
+    d.querySelector("#btnNotizSchliessen").onclick = () => { d.close(); d.remove(); renderMain(); };
+  }
+
+  zeichnen();
+  d.showModal();
 }
 
 /* ---------- Gewichtung / Einstellungen ---------- */
