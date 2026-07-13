@@ -326,6 +326,21 @@
   }
   .dec::before { content: "Ø "; opacity: 0.65; }
 
+  /* ---------- Notenspiegel ---------- */
+  .notenspiegel { max-width: 420px; }
+  .ns-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+  .ns-row .grade { flex: none; }
+  .ns-track { flex: 1; height: 13px; background: #eceef2; border-radius: 4px; overflow: hidden; }
+  .ns-bar { height: 100%; border-radius: 4px; }
+  .ns-bar.g1 { background: var(--good); }
+  .ns-bar.g2 { background: #48761c; }
+  .ns-bar.g3 { background: var(--mid); }
+  .ns-bar.g4 { background: #a05a12; }
+  .ns-bar.g5 { background: var(--bad); }
+  .ns-bar.g6 { background: #8f1f1f; }
+  .ns-count { flex: none; width: 34px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 0.82rem; }
+  .ns-total { margin-top: 4px; }
+
   .empty {
     text-align: center;
     color: var(--muted);
@@ -737,6 +752,26 @@ function gradeClass(x, system) {
 function chip(x, nk, borderline = false, system, mark = "") {
   if (x === null) return '<span class="grade">–</span>';
   return `<span class="grade ${gradeClass(x, system)} ${borderline ? "borderline" : ""}">${fmt(x, nk)}${mark}</span>`;
+}
+
+// Notenspiegel einer Leistung: Häufigkeit je ganzer Note/NP (Zwischenwerte gerundet) — für die
+// Rückgabe einer Klassenarbeit, wo die Verteilung üblich oder vorgeschrieben ist.
+function notenspiegelHtml(l, kl) {
+  const werte = kl.schueler.map(s => leistungsNote(l, s.id)).filter(n => n !== null);
+  const buckets = l.system === "np" ? Array.from({ length: 16 }, (_, i) => 15 - i) : [1, 2, 3, 4, 5, 6];
+  const rund = l.system === "np" ? rundeNP : rundeGanz;
+  const anzahlen = buckets.map(g => werte.filter(n => rund(n) === g).length);
+  const max = Math.max(1, ...anzahlen);
+  const zeilen = buckets.map((g, i) => {
+    const anzahl = anzahlen[i];
+    const breite = anzahl ? Math.round(anzahl / max * 100) : 0;
+    return `<div class="ns-row">
+      <span class="grade ${gradeClass(g, l.system)}">${g}</span>
+      <div class="ns-track"><div class="ns-bar ${gradeClass(g, l.system)}" style="width:${breite}%"></div></div>
+      <span class="ns-count">${anzahl}×</span>
+    </div>`;
+  }).join("");
+  return zeilen + `<div class="ns-total hint">n = ${werte.length}</div>`;
 }
 // Hintergrundfarbe zur Halbjahres-Kennzeichnung in der Übersichtstabelle (1 = HJ1, 2 = HJ2)
 function hjFarbe(hj, stark = false) {
@@ -1767,6 +1802,9 @@ function renderLeistungEingabe(m, kl) {
     html += `<tr class="avg-row"><td>Ø Klasse</td><td class="num" id="avgNote"></td></tr>`;
     html += `</table></div>`;
   }
+  html += `<h3>Notenspiegel</h3>
+    ${l.system !== "np" ? `<p class="hint">Zwischenwerte zählen für die Verteilung als nächste ganze Note.</p>` : ""}
+    <div class="notenspiegel" id="notenspiegel">${notenspiegelHtml(l, kl)}</div>`;
   html += `</div>`;
   m.innerHTML = html;
 
@@ -1778,6 +1816,8 @@ function renderLeistungEingabe(m, kl) {
     const mitNote = kl.schueler.map(s => leistungsNote(l, s.id)).filter(n => n !== null);
     const avgNoteEl = m.querySelector("#avgNote");
     if (avgNoteEl) avgNoteEl.textContent = fmt(mittelWert(mitNote), l.system === "np" ? 1 : 2);
+    const nsEl = m.querySelector("#notenspiegel");
+    if (nsEl) nsEl.innerHTML = notenspiegelHtml(l, kl);
     if (l.modus !== "punkte") return;
     l.teilaufgaben.forEach((t, i) => {
       const werte = kl.schueler
