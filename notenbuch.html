@@ -413,6 +413,32 @@
     color: var(--accent-dunkel);
     border-color: var(--accent);
   }
+  .undo-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 46px;
+    transform: translateX(-50%);
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--kopf-bg);
+    color: var(--kopf-ink);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+    font-size: 0.85rem;
+    max-width: min(92vw, 560px);
+  }
+  .undo-toast button {
+    background: transparent;
+    color: #cdd3dd;
+    border-color: #3a4150;
+    white-space: nowrap;
+  }
+  .undo-toast button:hover { border-color: var(--accent); color: #fff; }
+  .undo-toast button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .undo-toast button.primary:hover { background: var(--accent-dunkel); }
   .update-banner {
     display: none;
     background: var(--accent);
@@ -436,7 +462,7 @@
   }
   .print-only { display: none; }
   @media print {
-    header, nav.klassen, nav.views, .footerbar, .update-banner, #exportBar { display: none !important; }
+    header, nav.klassen, nav.views, .footerbar, .update-banner, .undo-toast, #exportBar { display: none !important; }
     body { background: #fff; }
     main { padding: 0; }
     .card { border: none; padding: 0; margin-bottom: 0; }
@@ -483,6 +509,12 @@
 <div class="footerbar">
   <span>Alle Daten liegen ausschließlich in deiner lokalen Datei.</span>
   <span id="autosaveInfo"></span>
+</div>
+
+<div class="undo-toast" id="undoToast" style="display:none">
+  <span id="undoText"></span>
+  <button class="primary small" id="btnUndo">Rückgängig</button>
+  <button class="small" id="btnUndoDismiss" title="Ausblenden" aria-label="Ausblenden">✕</button>
 </div>
 
 <script>
@@ -1112,6 +1144,8 @@ async function speichern(alsNeu = false) {
 
 let autosaveTimer = null;
 function markiereAenderung() {
+  if (undoFrisch) undoFrisch = false; // das Speichern der Löschaktion selbst lässt das Rückgängig bestehen
+  else if (undoSchnappschuss) verwerfeUndo(); // jede weitere Änderung würde beim Rückgängig mit verloren gehen
   setDirty(true);
   if (hatFSA && fileHandle) {
     clearTimeout(autosaveTimer);
@@ -1126,6 +1160,43 @@ function markiereAenderung() {
 window.addEventListener("beforeunload", e => {
   if (dirty) { e.preventDefault(); e.returnValue = ""; }
 });
+
+/* ================= Rückgängig (eine Stufe, nur für Löschaktionen) ================= */
+// Sicherheitsnetz gegen Fehlklicks: das Autosave schreibt eine Löschung nach 1,5 s
+// unwiderruflich in die Datei. Deshalb wird unmittelbar vor jeder Löschaktion eine
+// Kopie des Zustands im Speicher behalten und per Toast zum Zurückholen angeboten.
+// Das Angebot verfällt bei der nächsten anderen Änderung (sonst ginge diese beim
+// Zurückholen mit verloren), beim Ausblenden oder nach Ablauf der Frist.
+
+let undoSchnappschuss = null; // { json, aktiveKlasse } — Zustand unmittelbar vor der Löschaktion
+let undoFrisch = false;       // wahr zwischen merkeUndo() und dem markiereAenderung() der Löschaktion
+let undoTimer = null;
+
+function merkeUndo(beschreibung) {
+  undoSchnappschuss = { json: JSON.stringify(state), aktiveKlasse };
+  undoFrisch = true;
+  document.getElementById("undoText").textContent = beschreibung;
+  document.getElementById("undoToast").style.display = "flex";
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(verwerfeUndo, 15000);
+}
+
+function verwerfeUndo() {
+  undoSchnappschuss = null;
+  clearTimeout(undoTimer);
+  document.getElementById("undoToast").style.display = "none";
+}
+
+function rueckgaengig() {
+  if (!undoSchnappschuss) return;
+  state = JSON.parse(undoSchnappschuss.json);
+  aktiveKlasse = undoSchnappschuss.aktiveKlasse;
+  offeneLeistung = null;
+  offenerAuszugSid = null;
+  verwerfeUndo();
+  markiereAenderung();
+  renderAll();
+}
 
 /* ================= Rendering ================= */
 
@@ -1521,6 +1592,7 @@ function renderLeistungen(m, kl) {
   m.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
     const l = kl.leistungen.find(x => x.id === b.dataset.del);
     if (confirm(`„${l.titel}" mit allen eingetragenen Noten löschen?`)) {
+      merkeUndo(`Leistung „${l.titel}" gelöscht.`);
       kl.leistungen = kl.leistungen.filter(x => x.id !== l.id);
       markiereAenderung(); renderMain();
     }
@@ -2018,6 +2090,7 @@ function renderSchueler(m, kl) {
   m.querySelectorAll("[data-sdel]").forEach(b => b.onclick = () => {
     const s = kl.schueler.find(x => x.id === b.dataset.sdel);
     if (!confirm(`${s.name} entfernen? Alle Noten dieser Person entfallen.`)) return;
+    merkeUndo(`${s.name} entfernt.`);
     kl.schueler = kl.schueler.filter(x => x.id !== s.id);
     for (const l of kl.leistungen) delete l.noten[s.id];
     delete kl.overrides[s.id];
@@ -2138,6 +2211,7 @@ function renderEinstellungen(m, kl) {
       return alert(`„${k.label}" ist Ziel einer Faltung anderer Kategorien und kann nicht gelöscht werden. Ändere zuerst diese anderen Kategorien.`);
     }
     if (!confirm(`Kategorie „${k.label}" wirklich löschen?`)) return;
+    merkeUndo(`Kategorie „${k.label}" gelöscht.`);
     kl.kategorien = kl.kategorien.filter(x => x.id !== id);
     markiereAenderung(); renderMain();
   });
@@ -2153,6 +2227,7 @@ function renderEinstellungen(m, kl) {
   $("#kSj").onchange = e => { kl.schuljahr = e.target.value.trim(); markiereAenderung(); renderAll(); };
   $("#kDel").onclick = () => {
     if (!confirm(`Klasse „${kl.name} ${kl.fach}" mit allen Noten endgültig löschen?`)) return;
+    merkeUndo(`Klasse „${kl.name} ${kl.fach}" gelöscht.`);
     state.klassen = state.klassen.filter(k => k.id !== kl.id);
     aktiveKlasse = state.klassen[0]?.id ?? null;
     markiereAenderung(); renderAll();
@@ -2216,6 +2291,8 @@ document.getElementById("btnSave").onclick = () => speichern(false);
 document.getElementById("btnSaveAs").onclick = () => speichern(true);
 document.getElementById("btnPasswort").onclick = passwortDialog;
 aktualisierePasswortButton();
+document.getElementById("btnUndo").onclick = rueckgaengig;
+document.getElementById("btnUndoDismiss").onclick = verwerfeUndo;
 document.getElementById("btnUpdateReload").onclick = () => location.reload();
 document.getElementById("btnUpdateDismiss").onclick = () => {
   document.getElementById("updateBanner").style.display = "none";
