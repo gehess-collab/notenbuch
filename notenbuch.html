@@ -2218,12 +2218,12 @@ function renderSchueler(m, kl) {
     <td class="num">${i + 1}</td>
     <td><input data-sname="${s.id}" value="${escapeHtml(s.name)}" style="width:100%;border-color:transparent;background:transparent"></td>
     <td><button class="small" data-snotiz="${s.id}">📝 Notizen${anzahl ? ` (${anzahl})` : ""}</button></td>
-    <td><button class="small danger" data-sdel="${s.id}">Entfernen</button></td></tr>${vorschau}`;
+    <td><button class="small danger" data-sdel="${s.id}" title="${escapeHtml(s.name)} aus der Klasse entfernen">🗑 Schüler entfernen</button></td></tr>${vorschau}`;
   }).join("");
   m.innerHTML = `<div class="card">
     <h2>Schülerliste (${kl.schueler.length})</h2>
-    <div class="table-scroll"><table style="max-width:680px">
-      <tr><th style="width:36px">#</th><th>Name</th><th style="width:150px"></th><th style="width:110px"></th></tr>${rows}
+    <div class="table-scroll"><table style="max-width:720px">
+      <tr><th style="width:36px">#</th><th>Name</th><th style="width:150px"></th><th style="width:150px"></th></tr>${rows}
     </table></div>
     <h3>Hinzufügen</h3>
     <p class="hint">Ein Name pro Zeile, z. B. „Müller, Anna". Die Liste wird alphabetisch sortiert.</p>
