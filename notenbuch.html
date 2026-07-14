@@ -276,10 +276,79 @@
   }
   button.action:hover { background: #dde7fa; border-color: var(--accent); }
 
+  /* ---------- Gewichtung ---------- */
+  .gw-balken {
+    display: flex;
+    height: 30px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 6px 0 16px;
+    border: 1px solid var(--line);
+    background: #eceef2;
+  }
+  .gw-seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    color: #fff;
+    font-size: 0.74rem;
+    font-weight: 650;
+    white-space: nowrap;
+    overflow: hidden;
+    box-shadow: inset -1px 0 0 rgba(255,255,255,0.45);
+  }
+  .gw-seg:last-child { box-shadow: none; }
+  .gw-seg span { overflow: hidden; text-overflow: ellipsis; padding: 0 8px; }
+
+  table.kat-tabelle { font-size: 0.9rem; }
+  table.kat-tabelle th, table.kat-tabelle td {
+    border: none;
+    border-bottom: 1px solid var(--line);
+    padding: 7px 8px;
+    vertical-align: middle;
+  }
+  table.kat-tabelle thead th {
+    background: transparent;
+    border-bottom: 2px solid var(--line);
+    color: var(--muted);
+  }
+  table.kat-tabelle .kat-c-aktiv { width: 1%; text-align: center; white-space: nowrap; }
+  table.kat-tabelle .kat-c-del { width: 1%; text-align: right; }
+  table.kat-tabelle .kat-c-label input { width: 100%; min-width: 130px; }
+  table.kat-tabelle .kat-c-gewicht { white-space: nowrap; }
+  table.kat-tabelle .kat-c-gewicht input { width: 58px; }
+  table.kat-tabelle .kat-c-modus select { max-width: 155px; }
+  .kat-inaktiv > td { opacity: 0.45; }
+  .kat-inaktiv > td.kat-c-aktiv { opacity: 1; }
+  .kat-dash { color: var(--muted); }
+  .kat-tabelle .kat-info-zeile td { padding-top: 0; padding-bottom: 4px; }
+  .kat-tabelle .kat-info-zeile .info { margin: 2px 0 6px; }
+  .kat-tabelle .kat-c-del button { border-color: transparent; background: transparent; }
+  .kat-fuss { align-items: center; margin: 12px 0 4px; }
+  .kat-summe { font-size: 0.82rem; color: var(--muted); }
+  .kat-summe strong { margin-left: 6px; font-size: 1rem; }
+
+  .danger-zone {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding: 12px 14px;
+    border: 1px solid #f0d5d0;
+    background: #fdf4f2;
+    border-radius: var(--radius);
+  }
+  .danger-zone > div { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 220px; }
+  .danger-zone strong { color: var(--bad); font-size: 0.9rem; }
+
   /* ---------- Tabellen ---------- */
   table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
-  th, td { border: 1px solid #e9ebf0; padding: 5px 10px; text-align: left; }
-  th { background: #e6e9f0; font-weight: 750; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); border-bottom: 2px solid #d2d7e2; }
+  /* Ruhiger Look: kräftige horizontale Zeilenlinien, nur hauchdünne vertikale Spaltenführung */
+  th, td { border: none; border-bottom: 1px solid var(--line); border-right: 1px solid #eef1f5; padding: 6px 10px; text-align: left; }
+  th:last-child, td:last-child { border-right: none; }
+  th { background: #f3f5f9; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); border-bottom: 2px solid var(--line); }
   td { font-variant-numeric: tabular-nums; }
   td.num, th.num { text-align: right; }
   tr:hover td { background: #f5f8fd; }
@@ -485,6 +554,8 @@
     .card { border: none; padding: 0; margin-bottom: 0; }
     .print-only { display: block; margin-bottom: 12px; }
     table { font-size: 10px; }
+    /* Auf Papier drucken Browser Zellhintergründe (HJ-Farbbänder) meist nicht — daher volles dezentes Raster für die Spaltentrennung */
+    th, td { border: 1px solid #c8ccd4; }
     .hint, .info, .legende { display: none; }
     .table-scroll { overflow: visible; }
     .notiz-intern { display: none; }
@@ -2336,59 +2407,100 @@ function notizenDialog(sid) {
 function kategorieZeile(kl, k) {
   const zielOptionen = kl.kategorien.filter(x => x.id !== k.id && !x.faltetZu);
   const zielLabel = k.faltetZu ? kategorieLabel(kl, k.faltetZu) : null;
-  return `<div class="row" style="align-items:center;border-bottom:1px solid var(--line);padding:8px 4px;margin:0" data-katzeile="${k.id}">
-    <input type="checkbox" data-kat-aktiv="${k.id}" ${k.aktiv ? "checked" : ""} title="Kategorie in dieser Klasse nutzen">
-    <input data-kat-label="${k.id}" value="${escapeHtml(k.label)}" style="width:150px">
-    <select data-kat-modus="${k.id}" style="width:165px">
-      <option value="eigen" ${!k.faltetZu ? "selected" : ""}>Eigene Gewichtung</option>
-      <option value="falten" ${k.faltetZu ? "selected" : ""}>Zählt zu …</option>
-    </select>
-    <span data-kat-gewicht-wrap="${k.id}" style="${k.faltetZu ? "display:none" : ""}">
-      <input type="number" min="0" max="100" data-kat-gewicht="${k.id}" value="${k.gewicht ?? 0}" style="width:64px"> %</span>
-    <select data-kat-ziel="${k.id}" style="${k.faltetZu ? "" : "display:none"}">
-      ${zielOptionen.map(o => `<option value="${o.id}" ${k.faltetZu === o.id ? "selected" : ""}>${escapeHtml(o.label)}</option>`).join("")}
-    </select>
-    <button class="small danger" data-kat-del="${k.id}">✕</button>
-  </div>
-  ${(k.faltetZu && k.id !== "gfs") ? infoDetails("kat-falt-" + k.id,
-    `Wichtig: Faktor je „${escapeHtml(k.label)}" auf <strong>1 ÷ Anzahl geplanter Leistungen</strong> setzen (z. B. 0,25 bei 4) — sonst zieht jede einzelne so viel Gewicht wie eine ganze „${escapeHtml(zielLabel)}"`,
+  const zeile = `<tr class="kat-zeile${k.aktiv ? "" : " kat-inaktiv"}" data-katzeile="${k.id}">
+    <td class="kat-c-aktiv"><input type="checkbox" data-kat-aktiv="${k.id}" ${k.aktiv ? "checked" : ""} title="Kategorie in dieser Klasse nutzen"></td>
+    <td class="kat-c-label"><input data-kat-label="${k.id}" value="${escapeHtml(k.label)}"></td>
+    <td class="kat-c-modus">
+      <select data-kat-modus="${k.id}">
+        <option value="eigen" ${!k.faltetZu ? "selected" : ""}>eigenes Gewicht</option>
+        <option value="falten" ${k.faltetZu ? "selected" : ""}>zählt zu …</option>
+      </select>
+      <select data-kat-ziel="${k.id}" style="${k.faltetZu ? "" : "display:none"}">
+        ${zielOptionen.map(o => `<option value="${o.id}" ${k.faltetZu === o.id ? "selected" : ""}>${escapeHtml(o.label)}</option>`).join("")}
+      </select>
+    </td>
+    <td class="kat-c-gewicht num">
+      <span data-kat-gewicht-wrap="${k.id}" style="${k.faltetZu ? "display:none" : ""}"><input type="number" min="0" max="100" data-kat-gewicht="${k.id}" value="${k.gewicht ?? 0}"> %</span>
+      ${k.faltetZu ? `<span class="kat-dash">—</span>` : ""}
+    </td>
+    <td class="kat-c-del"><button class="small danger" data-kat-del="${k.id}" title="Kategorie „${escapeHtml(k.label)}" löschen" aria-label="Kategorie löschen">✕</button></td>
+  </tr>`;
+  const info = (k.faltetZu && k.id !== "gfs") ? `<tr class="kat-info-zeile"><td colspan="5">${infoDetails("kat-falt-" + k.id,
+    `Faktor je „${escapeHtml(k.label)}" auf <strong>1 ÷ Anzahl geplanter Leistungen</strong> setzen (z. B. 0,25 bei 4)`,
     `<p>Der Faktor wird im Feld „Faktor" beim Anlegen der Leistung gesetzt. Beispiel bei 4 geplanten „${escapeHtml(k.label)}"-Leistungen mit Faktor 0,25: Sind bei einem Schüler alle 4 erfasst, zählt der „${escapeHtml(k.label)}"-Block wie <strong>eine</strong> volle „${escapeHtml(zielLabel)}" (Gewicht 1,0). Fehlt eine, sind es 3 × 0,25 = 0,75 — etwas weniger, aber kein Fehlversuch. Beim Standard-Faktor 1 zählen 4 „${escapeHtml(k.label)}"-Leistungen dagegen wie 4 volle „${escapeHtml(zielLabel)}".</p>`,
-    `style="margin:2px 0 10px 26px"`, "warn") : ""}`;
+    ``, "warn")}</td></tr>` : "";
+  return zeile + info;
+}
+
+/* 100%-Stapelbalken über der Kategorie-Tabelle: ein Segment je eigener aktiver Top-Level-Kategorie */
+function gewichtungsBalken(eigeneAktive, summe) {
+  if (!eigeneAktive.length || summe <= 0) return "";
+  const farben = ["#3b6ce7", "#12a15f", "#e0873a", "#8a5cf5", "#d84f74", "#2ba5bd", "#6b7280"];
+  const segmente = eigeneAktive.map((k, i) => {
+    const anteil = (k.gewicht || 0) / summe * 100;
+    if (anteil <= 0) return "";
+    const beschriftung = anteil >= 14 ? `${escapeHtml(k.label)} · ${k.gewicht || 0} %` : (anteil >= 7 ? `${k.gewicht || 0} %` : "");
+    return `<div class="gw-seg" style="flex-basis:${anteil}%;background:${farben[i % farben.length]}" title="${escapeHtml(k.label)}: ${k.gewicht || 0} %"><span>${beschriftung}</span></div>`;
+  }).join("");
+  return `<div class="gw-balken" role="img" aria-label="Verteilung der eigenen Gewichte">${segmente}</div>`;
 }
 
 function renderEinstellungen(m, kl) {
   const istNP = kl.notensystem === "np";
   const eigeneAktive = kl.kategorien.filter(k => k.aktiv && !k.faltetZu);
   const summe = eigeneAktive.reduce((a, k) => a + (k.gewicht || 0), 0);
-  m.innerHTML = `<div class="card">
-    <h2>Gewichtung — ${escapeHtml(kl.name)} ${escapeHtml(kl.fach)}</h2>
-    <h3>Notensystem</h3>
-    <p class="info"><strong>${istNP ? "Notenpunkte 0–15 (Kursstufe)" : "Note 1–6"}</strong> — bei Anlage der Klasse festgelegt, danach nicht mehr änderbar (sonst würden bestehende Einträge falsch interpretiert). Für ein anderes Notensystem lege eine neue Klasse an.</p>
-    <h3>Kategorien</h3>
-    <p class="info">Häkchen = Kategorie wird in dieser Klasse genutzt (erscheint dann bei „Art" beim Anlegen einer Leistung). „Eigene Gewichtung" gibt der Kategorie ein festes %-Gewicht; „Zählt zu …" faltet sie stattdessen vollständig in eine andere Kategorie (z. B. Test zusammen wie eine zusätzliche KA, ohne eigenes Gewicht). Kategorien ohne eingetragene Noten werden für den jeweiligen Schüler automatisch ignoriert; die übrigen Gewichte werden dann anteilig hochgerechnet.</p>
-    <div>${kl.kategorien.map(k => kategorieZeile(kl, k)).join("")}</div>
-    <div class="row" style="margin-top:10px;align-items:center">
-      <button class="action small" id="btnKatAdd">+ Kategorie hinzufügen</button>
-      <span><label>Summe (eigene, aktive Kategorien)</label>
+  const berechnung = `<div class="kennzahlen kennzahlen-fakten">
+    <span>Notensystem<b>${istNP ? "Notenpunkte 0–15" : "Note 1–6"}</b></span>
+    <span>Halbjahr<b>${istNP ? "eigene Endnote" : "Viertelnote"}</b></span>
+    <span>Jahresnote<b>${istNP ? "entfällt" : "ganze Note"}</b></span>
+    <span>Grenzfälle x,5<b>orange markiert</b></span>
+  </div>`;
+  m.innerHTML = `
+  <div class="card">
+    <h2>Kategorien &amp; Gewichte</h2>
+    ${gewichtungsBalken(eigeneAktive, summe)}
+    <div class="table-scroll"><table class="kat-tabelle">
+      <thead><tr>
+        <th class="kat-c-aktiv" title="Kategorie in dieser Klasse nutzen">Aktiv</th>
+        <th>Bezeichnung</th>
+        <th>Zählt wie</th>
+        <th class="num">Gewicht</th>
+        <th></th>
+      </tr></thead>
+      <tbody>${kl.kategorien.map(k => kategorieZeile(kl, k)).join("")}</tbody>
+    </table></div>
+    <div class="row kat-fuss">
+      <button class="primary small" id="btnKatAdd">+ Kategorie</button>
+      <span class="spacer"></span>
+      <span class="kat-summe">Summe eigene Gewichte
         <strong class="num" id="gewSumme" style="color:${summe === 100 ? "var(--good)" : "var(--bad)"}">${summe} %</strong></span>
     </div>
-    ${istNP ? `
-    <h3>Halbjahresnote</h3>
-    <p class="info">In der Kursstufe ist jedes Halbjahr eine eigenständige Endnote. HJ 1 und HJ 2 werden <strong>nicht</strong> zu einer Jahresnote verrechnet.</p>
-    <h3>Rundung</h3>
-    <p class="info">Kaufmännisch auf ganze Notenpunkte (0–15). Grenzfälle um x,5 werden in der Übersicht orange markiert und können dort pädagogisch festgelegt werden.</p>
-    ` : `
-    <h3>Jahresnote</h3>
-    <p class="info">Die Jahresnote wird aus allen Leistungen des gesamten Schuljahres gemeinsam berechnet (gewichtet wie oben eingestellt) — keine separate Verrechnung der Halbjahre.</p>
-    <h3>Rundung</h3>
-    <p class="info">Halbjahr: kaufmännisch auf Viertelnoten. Jahr: kaufmännisch auf ganze Noten; Grenzfälle um x,5 werden in der Übersicht orange markiert und können dort pädagogisch festgelegt werden.</p>
-    `}
-    <h3>Klasse</h3>
+    ${infoDetails("gew-hilfe", "Wie funktioniert die Gewichtung?",
+      `<p>„Aktiv" blendet die Kategorie bei „Art" beim Anlegen einer Leistung ein. „eigenes Gewicht" gibt ihr einen festen %-Anteil; „zählt zu …" faltet sie stattdessen vollständig in eine andere Kategorie (z. B. Test zusammen wie eine zusätzliche KA, ohne eigenes Gewicht).</p>
+       <p>Kategorien ohne eingetragene Noten werden je Schüler automatisch ignoriert; die übrigen Gewichte werden dann anteilig hochgerechnet. Die eigenen Gewichte sollten zusammen 100 % ergeben.</p>`)}
+  </div>
+
+  <div class="card">
+    <h2>Berechnung</h2>
+    ${berechnung}
+    <p class="hint">Das Notensystem wird bei Anlage der Klasse festgelegt und ist danach nicht mehr änderbar — für ein anderes System eine neue Klasse anlegen. ${istNP
+      ? "In der Kursstufe ist jedes Halbjahr eine eigenständige Endnote; es gibt keine Jahresnote."
+      : "Die Jahresnote wird aus allen Leistungen des ganzen Schuljahres gemeinsam berechnet, nicht aus den beiden Halbjahresnoten."} Gerundet wird kaufmännisch; Grenzfälle um x,5 werden in der Übersicht orange markiert und lassen sich dort pädagogisch festlegen.</p>
+  </div>
+
+  <div class="card">
+    <h2>Klasse</h2>
     <div class="row">
       <div><label>Bezeichnung</label><input id="kName" value="${escapeHtml(kl.name)}"></div>
       <div><label>Fach</label><input id="kFach" value="${escapeHtml(kl.fach)}"></div>
       <div><label>Schuljahr</label><input id="kSj" value="${escapeHtml(kl.schuljahr)}"></div>
-      <div><button class="danger" id="kDel">Klasse löschen</button></div>
+    </div>
+    <div class="danger-zone">
+      <div>
+        <strong>Klasse löschen</strong>
+        <span class="hint">Entfernt „${escapeHtml(kl.name)} ${escapeHtml(kl.fach)}" mit allen Schülern, Leistungen und Noten. Nicht umkehrbar.</span>
+      </div>
+      <button class="danger" id="kDel">Klasse löschen</button>
     </div>
   </div>`;
   bindInfoDetails(m);
