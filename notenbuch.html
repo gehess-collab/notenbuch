@@ -289,6 +289,23 @@
   td input[type="number"]:focus { border-color: var(--accent); background: #fff; }
   tr.avg-row td { background: #f4f6f9; border-top: 2px solid var(--line); font-weight: 650; }
   tr.avg-row td:first-child { color: var(--muted); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; }
+  tr.notiz-vorschau-zeile td { border-top: none; background: var(--accent-soft); cursor: pointer; }
+  tr.notiz-vorschau-zeile:hover td { background: var(--accent-soft); filter: brightness(0.97); }
+  .notizen-vorschau { margin: 0; padding-left: 18px; font-size: 0.82rem; color: var(--ink); }
+  .notizen-vorschau li { margin: 3px 0; }
+  .notizen-vorschau .notiz-datum { font-weight: 650; color: var(--muted); }
+  .schueler-zelle { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .schueler-zelle button.icon-btn {
+    padding: 2px 6px;
+    line-height: 1;
+    font-size: 0.95rem;
+    color: var(--muted);
+    background: transparent;
+    border-color: transparent;
+  }
+  .schueler-zelle button.icon-btn:hover, .schueler-zelle button.icon-btn:focus-visible {
+    color: var(--accent); border-color: var(--accent); background: var(--accent-soft);
+  }
   tr.avg-row:hover td { background: #f4f6f9; }
 
   /* ---------- Notenchips ---------- */
@@ -1375,7 +1392,7 @@ function renderUebersicht(m, kl) {
   let grenzfaelle = 0;
   const hj1Dez = [], hj2Dez = [], jahrDez = [];
   for (const s of kl.schueler) {
-    rows += `<tr><td><strong>${escapeHtml(s.name)}</strong> <button class="small" data-auszug="${s.id}" title="Einzelauszug für ${escapeHtml(s.name)} öffnen">Auszug</button></td>`;
+    rows += `<tr><td><div class="schueler-zelle"><strong>${escapeHtml(s.name)}</strong><button class="small icon-btn" data-auszug="${s.id}" title="Einzelauszug für ${escapeHtml(s.name)} öffnen" aria-label="Einzelauszug für ${escapeHtml(s.name)} öffnen">↗</button></div></td>`;
     for (const k of aktiveKategorien(kl)) {
       for (const l of leistNachTyp[k.id]) {
         const n = leistungsNote(l, s.id);
@@ -2192,11 +2209,16 @@ function renderLeistungEingabe(m, kl) {
 function renderSchueler(m, kl) {
   let rows = kl.schueler.map((s, i) => {
     const anzahl = s.notizen.length;
+    const notizenSortiert = [...s.notizen].sort((a, b) => b.datum.localeCompare(a.datum));
+    const vorschau = notizenSortiert.length ? `<tr class="notiz-vorschau-zeile">
+      <td></td><td colspan="3" data-snotiz="${s.id}" title="Notizen bearbeiten"><ul class="notizen-vorschau">
+        ${notizenSortiert.map(n => `<li><span class="notiz-datum">${n.datum || "–"}</span>${n.druckbar ? "" : ' <span class="hint">(nur intern)</span>'}: ${escapeHtml(n.text).replace(/\n/g, "<br>")}</li>`).join("")}
+      </ul></td></tr>` : "";
     return `<tr>
     <td class="num">${i + 1}</td>
     <td><input data-sname="${s.id}" value="${escapeHtml(s.name)}" style="width:100%;border-color:transparent;background:transparent"></td>
     <td><button class="small" data-snotiz="${s.id}">📝 Notizen${anzahl ? ` (${anzahl})` : ""}</button></td>
-    <td><button class="small danger" data-sdel="${s.id}">Entfernen</button></td></tr>`;
+    <td><button class="small danger" data-sdel="${s.id}">Entfernen</button></td></tr>${vorschau}`;
   }).join("");
   m.innerHTML = `<div class="card">
     <h2>Schülerliste (${kl.schueler.length})</h2>
@@ -2264,7 +2286,7 @@ function notizenDialog(sid) {
         <textarea id="nnText" rows="2" style="flex:1;min-width:180px" placeholder="Notiz eintragen …"></textarea>
       </div>
       <label style="font-weight:400;font-size:0.85rem;display:flex;align-items:center;gap:6px;margin-top:6px">
-        <input type="checkbox" id="nnDruckbar"> Im Ausdruck zeigen</label>
+        <input type="checkbox" id="nnDruckbar" checked> Im Ausdruck zeigen</label>
       <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px">
         <button class="primary" id="btnNotizAdd">+ Notiz hinzufügen</button>
         <button id="btnNotizSchliessen">Schließen</button>
