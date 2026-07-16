@@ -10,7 +10,7 @@ To run it: open `notenbuch.html` in a browser (Chrome/Edge recommended for autos
 
 ## Persistence model
 
-There is **no server and no localStorage**. All data lives in a user-chosen `.json` file on disk:
+There is **no server and no localStorage for grade data**. All grade data lives in a user-chosen `.json` file on disk. The one exception is the light/dark theme preference (`localStorage["notenbuchTheme"]`, see `notenbuchThemeAufloesen()` in the `<head>` bootstrap script and `THEME_KEY`/`aktuellesTheme()`/`themeUmschalten()` further down): a pure UI setting, not grade data, so it deliberately lives in `localStorage` instead of the `.json` file and needs no `migriere()` step.
 
 - **Chrome/Edge** use the File System Access API (`showOpenFilePicker`/`showSaveFilePicker`, gated by `hatFSA`). With a `fileHandle` open, `markiereAenderung()` autosaves via a 1.5s debounce timer directly back into the file.
 - **Other browsers without File System Access** (Firefox, and notably iOS/iPadOS Safari, which does not implement this API and likely never will) fall back to a hidden `<input type=file>` for open. For save, `speichern()` tries the Web Share API first when the platform supports sharing files (`navigator.canShare({ files: [...] })` — true on iOS/iPadOS): this opens the native share sheet so the user can pick "Save to Files" and overwrite the existing file directly. If Web Share isn't available, or the user dismisses the share sheet with a real error (not a deliberate cancel), it falls back further to a plain download link. None of these fallback paths support autosave — every change needs an explicit tap/click on "Speichern".

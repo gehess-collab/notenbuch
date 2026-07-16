@@ -2,6 +2,20 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<script>
+  /* Vor dem ersten Rendern anwenden, damit die Seite nicht kurz hell aufblitzt.
+     notenbuchThemeAufloesen() wird global bereitgestellt, damit das Hauptskript
+     dieselbe Aufloese-Logik wiederverwendet statt sie ein zweites Mal zu duplizieren. */
+  window.notenbuchThemeKey = "notenbuchTheme";
+  window.notenbuchThemeAufloesen = function () {
+    try {
+      var t = localStorage.getItem(window.notenbuchThemeKey);
+      if (t === "light" || t === "dark") return t;
+    } catch (e) {}
+    return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  };
+  document.documentElement.dataset.theme = window.notenbuchThemeAufloesen();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Notenbuch</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+CjxwYXRoIGZpbGw9IiMzYjZjZTciIGQ9Ik0xMiAzIDEgOGwxMSA1IDExLTUtMTEtNXoiLz4KPHBhdGggZmlsbD0iIzFiMWYyNyIgb3BhY2l0eT0iMC45IiBkPSJNNSAxMC42djQuMWMwIDEuNCAzLjEgMy4zIDcgMy4zczctMS45IDctMy4zdi00LjFsLTcgMy4yLTctMy4yeiIvPgo8cmVjdCBmaWxsPSIjMWIxZjI3IiB4PSIyMS4yIiB5PSI4IiB3aWR0aD0iMS40IiBoZWlnaHQ9IjYuNiIvPgo8L3N2Zz4=">
@@ -38,7 +52,94 @@
     --jahr-bg: #e3d1f5;
     --mono: Consolas, "Cascadia Mono", "SF Mono", monospace;
     --radius: 10px;
+    color-scheme: light;
+    /* Weitere Bereiche, die im Dark Mode eine eigene Farbe brauchen (Default = bisheriges Hell-Design) */
+    --surface-2: #f8f9fb;
+    --panel-bg: #eef1f7;
+    --seg-bg: #d8dce4;
+    --seg-border: #c5cbd7;
+    --thead-bg: #f3f5f9;
+    --row-hover-bg: #f5f8fd;
+    --avg-row-bg: #f4f6f9;
+    --td-input-bg: #f7f8fa;
+    --col-line: #eef1f5;
+    --btn-border: #d7dce4;
+    --input-bg: #ffffff;
+    --input-border: #e3e6ec;
+    --card-border: #e3e6ec;
+    --card-shadow: 0 1px 2px rgba(27,31,39,0.04);
+    --accent-glow: rgba(59,108,231,0.35);
+    --accent-glow-stark: rgba(59,108,231,0.4);
+    --action-border: #ccd9f5;
+    --action-hover-bg: #dde7fa;
+    --danger-bg: #fdf4f2;
+    --danger-border: #f0d5d0;
+    --dec-ink: #465063;
+    --muted-rgb: 93, 102, 117;
+    --chip-bg: #eceef2;
+    --accent-ink: #fff;
+    --g1-bg: #e1f3e7; --g1-ink: var(--good);
+    --g2-bg: #e7f1de; --g2-ink: #48761c;
+    --g3-bg: #fcf1d2; --g3-ink: var(--mid);
+    --g4-bg: #fbe8d3; --g4-ink: #a05a12;
+    --g5-bg: #fbe1dc; --g5-ink: var(--bad);
+    --g6-bg: #f6cfcf; --g6-ink: #8f1f1f;
     font-size: 15px;
+  }
+  /* Dark Mode gilt nur fuer den Bildschirm: @media screen sorgt dafuer, dass beim Drucken
+     automatisch wieder die Hell-Werte aus dem :root oben greifen, ganz ohne Extra-Reset. */
+  @media screen {
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #101218;
+      --surface: #1b1e26;
+      --ink: #e6e8ee;
+      --muted: #9aa3b5;
+      --line: #2b2f3a;
+      --accent: #6d93f0;
+      --accent-dunkel: #a9c1fb;
+      --accent-soft: #232c48;
+      --good: #51d698;
+      --mid: #e7b540;
+      --bad: #ea6253;
+      --info-bg: #202634;
+      --info-border: #343b4d;
+      --hj1-bg: #1d2940;
+      --hj1-bg-stark: #2b4a7d;
+      --hj2-bg: #312817;
+      --hj2-bg-stark: #63491c;
+      --jahr-bg: #34255c;
+      --surface-2: #20242e;
+      --panel-bg: #1d2230;
+      --seg-bg: #20242d;
+      --seg-border: #333a47;
+      --thead-bg: var(--seg-bg);
+      --row-hover-bg: #232a38;
+      --avg-row-bg: var(--seg-bg);
+      --td-input-bg: #262b35;
+      --col-line: var(--td-input-bg);
+      --btn-border: #383e4a;
+      --input-bg: #14171f;
+      --input-border: #363d4c;
+      --card-border: #2f3542;
+      --card-shadow: 0 2px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+      --accent-glow: rgba(109,147,240,0.45);
+      --accent-glow-stark: rgba(109,147,240,0.5);
+      --action-border: #3a4568;
+      --action-hover-bg: #2c3658;
+      --danger-bg: #2a1d1e;
+      --danger-border: #4a2e2c;
+      --accent-ink: #0f1219;
+      --dec-ink: #c3c9d6;
+      --muted-rgb: 154, 163, 181;
+      --chip-bg: var(--td-input-bg);
+      --g1-bg: #163627; --g1-glow: rgba(81,214,152,0.5);
+      --g2-bg: #273617; --g2-ink: #97d04e; --g2-glow: rgba(151,208,78,0.5);
+      --g3-bg: #3b2f11; --g3-glow: rgba(231,181,64,0.5);
+      --g4-bg: #3b2311; --g4-ink: #ed8e45; --g4-glow: rgba(237,142,69,0.5);
+      --g5-bg: #3d1a14; --g5-glow: rgba(234,98,83,0.5);
+      --g6-bg: #3f121a; --g6-ink: #e7405c; --g6-glow: rgba(231,64,92,0.5);
+    }
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -77,7 +178,7 @@
     border-color: #3a4150;
   }
   header button:hover { border-color: var(--accent); color: #fff; }
-  header button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  header button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   header button.primary:hover { background: var(--accent-dunkel); }
   .file-status {
     font-size: 0.72rem;
@@ -90,7 +191,7 @@
   /* ---------- Buttons ---------- */
   button {
     font: inherit;
-    border: 1px solid #d7dce4;
+    border: 1px solid var(--btn-border);
     background: var(--surface);
     color: var(--ink);
     border-radius: 7px;
@@ -102,9 +203,9 @@
   button.primary {
     background: var(--accent);
     border-color: var(--accent);
-    color: #fff;
+    color: var(--accent-ink);
     font-weight: 650;
-    box-shadow: 0 1px 4px rgba(59,108,231,0.35);
+    box-shadow: 0 1px 4px var(--accent-glow);
   }
   button.primary:hover { background: var(--accent-dunkel); }
   button.small { padding: 3px 8px; font-size: 0.8rem; }
@@ -117,12 +218,13 @@
 
   input, select, textarea {
     font: inherit;
-    border: 1px solid var(--line);
+    border: 1px solid var(--input-border);
     border-radius: 6px;
     padding: 5px 8px;
-    background: #fff;
+    background: var(--input-bg);
     color: var(--ink);
   }
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
   input[type="number"] { width: 72px; text-align: right; }
   label { font-size: 0.82rem; color: var(--muted); display: block; margin-bottom: 2px; }
 
@@ -146,36 +248,36 @@
   }
   nav.klassen button.tab.active {
     background: var(--accent);
-    color: #fff;
+    color: var(--accent-ink);
     border-color: var(--accent);
     font-weight: 700;
-    box-shadow: 0 1px 4px rgba(59,108,231,0.35);
+    box-shadow: 0 1px 4px var(--accent-glow);
   }
   nav.views {
     display: flex;
     gap: 2px;
     margin: 10px 18px 0;
     padding: 3px;
-    background: #d8dce4;
-    border: 1px solid #c5cbd7;
+    background: var(--seg-bg);
+    border: 1px solid var(--seg-border);
     border-radius: 9px;
     width: fit-content;
   }
   nav.views button { border: none; background: transparent; color: var(--muted); padding: 6px 16px; border-radius: 7px; font-size: 0.85rem; font-weight: 600; }
-  nav.views button.active { background: var(--accent); color: #fff; font-weight: 700; box-shadow: 0 1px 4px rgba(59,108,231,0.4); }
+  nav.views button.active { background: var(--accent); color: var(--accent-ink); font-weight: 700; box-shadow: 0 1px 4px var(--accent-glow-stark); }
 
   main { padding: 16px 18px 60px; max-width: 1400px; }
 
   .card {
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 1px solid var(--card-border);
     border-radius: var(--radius);
     padding: 14px 16px;
     margin-bottom: 16px;
-    box-shadow: 0 1px 2px rgba(27,31,39,0.04);
+    box-shadow: var(--card-shadow);
   }
   .card h2 { margin: 0 0 10px; font-size: 0.95rem; font-weight: 650; }
-  .kennzahlen { display: flex; gap: 22px; flex-wrap: wrap; margin: 0 0 10px; background: #eef1f7; border: 1px solid var(--line); border-radius: 8px; padding: 10px 18px; }
+  .kennzahlen { display: flex; gap: 22px; flex-wrap: wrap; margin: 0 0 10px; background: var(--panel-bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 18px; }
   .kennzahlen span { font-size: 0.72rem; color: var(--muted); }
   .kennzahlen b { display: block; font-size: 0.95rem; font-weight: 650; color: var(--ink); font-variant-numeric: tabular-nums; }
   .card h3 {
@@ -241,7 +343,7 @@
     gap: 8px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: #f8f9fb;
+    background: var(--surface-2);
     padding: 12px 14px;
   }
   .option h4 {
@@ -261,7 +363,7 @@
   .option .apply { align-self: flex-start; margin-top: 2px; }
   .option .fields.fields-boxed { gap: 14px; }
   .option .fields.fields-boxed > div {
-    background: #fff;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 8px 12px;
@@ -269,12 +371,12 @@
   .option .fields.fields-boxed label { font-weight: 700; color: var(--ink); }
   /* Aktions-Button: klar sichtbar, aber unter dem globalen Speichern-Primary */
   button.action {
-    border-color: #ccd9f5;
+    border-color: var(--action-border);
     color: var(--accent-dunkel);
     background: var(--accent-soft);
     font-weight: 600;
   }
-  button.action:hover { background: #dde7fa; border-color: var(--accent); }
+  button.action:hover { background: var(--action-hover-bg); border-color: var(--accent); }
 
   /* ---------- Gewichtung ---------- */
   .gw-balken {
@@ -284,7 +386,7 @@
     overflow: hidden;
     margin: 6px 0 16px;
     border: 1px solid var(--line);
-    background: #eceef2;
+    background: var(--chip-bg);
   }
   .gw-seg {
     display: flex;
@@ -336,8 +438,8 @@
     flex-wrap: wrap;
     margin-top: 20px;
     padding: 12px 14px;
-    border: 1px solid #f0d5d0;
-    background: #fdf4f2;
+    border: 1px solid var(--danger-border);
+    background: var(--danger-bg);
     border-radius: var(--radius);
   }
   .danger-zone > div { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 220px; }
@@ -346,25 +448,20 @@
   /* ---------- Tabellen ---------- */
   table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
   /* Ruhiger Look: kräftige horizontale Zeilenlinien, nur hauchdünne vertikale Spaltenführung */
-  th, td { border: none; border-bottom: 1px solid var(--line); border-right: 1px solid #eef1f5; padding: 6px 10px; text-align: left; }
+  th, td { border: none; border-bottom: 1px solid var(--line); border-right: 1px solid var(--col-line); padding: 6px 10px; text-align: left; }
   th:last-child, td:last-child { border-right: none; }
-  th { background: #f3f5f9; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); border-bottom: 2px solid var(--line); }
+  th { background: var(--thead-bg); font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); border-bottom: 2px solid var(--line); }
   td { font-variant-numeric: tabular-nums; }
   td.num, th.num { text-align: right; }
-  tr:hover td { background: #f5f8fd; }
+  tr:hover td { background: var(--row-hover-bg); }
   .table-scroll { overflow-x: auto; }
-  td input[type="number"] { width: 68px; border: 1px solid var(--line); background: #f7f8fa; border-radius: 5px; }
+  td input[type="number"] { width: 68px; border: 1px solid var(--line); background: var(--td-input-bg); border-radius: 5px; }
   td input[type="number"]:hover { border-color: var(--accent); }
-  td input[type="number"]:focus { border-color: var(--accent); background: #fff; }
-  tr.avg-row td { background: #f4f6f9; border-top: 2px solid var(--line); font-weight: 650; }
+  td input[type="number"]:focus { border-color: var(--accent); background: var(--surface); }
+  tr.avg-row td { background: var(--avg-row-bg); border-top: 2px solid var(--line); font-weight: 650; }
   tr.avg-row td:first-child { color: var(--muted); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; }
-  tr.notiz-vorschau-zeile td { border-top: none; background: var(--accent-soft); cursor: pointer; }
-  tr.notiz-vorschau-zeile:hover td { background: var(--accent-soft); filter: brightness(0.97); }
-  .notizen-vorschau { margin: 0; padding-left: 18px; font-size: 0.82rem; color: var(--ink); }
-  .notizen-vorschau li { margin: 3px 0; }
-  .notizen-vorschau .notiz-datum { font-weight: 650; color: var(--muted); }
   .schueler-zelle { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .schueler-zelle button.icon-btn {
+  button.icon-btn {
     padding: 2px 6px;
     line-height: 1;
     font-size: 0.95rem;
@@ -372,10 +469,39 @@
     background: transparent;
     border-color: transparent;
   }
-  .schueler-zelle button.icon-btn:hover, .schueler-zelle button.icon-btn:focus-visible {
+  button.icon-btn:hover, button.icon-btn:focus-visible {
     color: var(--accent); border-color: var(--accent); background: var(--accent-soft);
   }
-  tr.avg-row:hover td { background: #f4f6f9; }
+  button.icon-btn.danger { color: var(--bad); }
+  button.icon-btn.danger:hover, button.icon-btn.danger:focus-visible {
+    color: var(--bad); border-color: var(--bad); background: var(--danger-bg);
+  }
+  tr.avg-row:hover td { background: var(--avg-row-bg); }
+
+  /* ---------- Schülerliste ---------- */
+  table.schueler-tabelle { table-layout: fixed; }
+  table.schueler-tabelle .s-c-del { text-align: center; }
+  .s-notiz-vorschau {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    border-left: 3px solid var(--info-border);
+    padding: 2px 0 2px 8px;
+  }
+  .s-notiz-vorschau:hover { border-left-color: var(--accent); }
+  .s-notiz-zeile { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; overflow: hidden; }
+  .s-notiz-zeile .notiz-datum {
+    flex: none;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent-dunkel);
+    background: var(--accent-soft);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  .s-notiz-zeile span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .s-notiz-mehr { font-size: 0.75rem; color: var(--muted); }
 
   /* ---------- Notenchips ---------- */
   .grade {
@@ -387,25 +513,34 @@
     font-weight: 650;
     font-size: 0.82rem;
     font-variant-numeric: tabular-nums;
-    background: #eceef2;
+    background: var(--chip-bg);
   }
-  .g1 { background: #e1f3e7; color: var(--good); }
-  .g2 { background: #e7f1de; color: #48761c; }
-  .g3 { background: #fcf1d2; color: var(--mid); }
-  .g4 { background: #fbe8d3; color: #a05a12; }
-  .g5 { background: #fbe1dc; color: var(--bad); }
-  .g6 { background: #f6cfcf; color: #8f1f1f; }
+  .g1 { background: var(--g1-bg); color: var(--g1-ink); --glow: var(--g1-glow); }
+  .g2 { background: var(--g2-bg); color: var(--g2-ink); --glow: var(--g2-glow); }
+  .g3 { background: var(--g3-bg); color: var(--g3-ink); --glow: var(--g3-glow); }
+  .g4 { background: var(--g4-bg); color: var(--g4-ink); --glow: var(--g4-glow); }
+  .g5 { background: var(--g5-bg); color: var(--g5-ink); --glow: var(--g5-glow); }
+  .g6 { background: var(--g6-bg); color: var(--g6-ink); --glow: var(--g6-glow); }
+  /* Vorberechnete Glow-Farbe je Notenstufe statt color-mix() pro Chip (guenstiger bei vielen Chips) */
+  @media screen {
+    :root[data-theme="dark"] .grade {
+      box-shadow: 0 0 9px -2px var(--glow, transparent);
+    }
+    :root[data-theme="dark"] .grade.borderline {
+      box-shadow: 0 0 0 2px var(--warn), 0 0 9px -2px var(--glow, transparent);
+    }
+  }
   .borderline { box-shadow: 0 0 0 2px var(--warn); }
   .dec {
     display: inline-block;
     font-size: 0.7rem;
     font-weight: 600;
-    color: #465063;
+    color: var(--dec-ink);
     margin-left: 6px;
     padding: 1px 7px;
     border-radius: 5px;
-    background: rgba(93,102,117,0.16);
-    border: 1px solid rgba(93,102,117,0.22);
+    background: rgba(var(--muted-rgb), 0.16);
+    border: 1px solid rgba(var(--muted-rgb), 0.22);
     font-family: var(--mono);
     font-variant-numeric: tabular-nums;
     vertical-align: middle;
@@ -416,14 +551,14 @@
   .notenspiegel { max-width: 420px; }
   .ns-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
   .ns-row .grade { flex: none; }
-  .ns-track { flex: 1; height: 13px; background: #eceef2; border-radius: 4px; overflow: hidden; }
+  .ns-track { flex: 1; height: 13px; background: var(--chip-bg); border-radius: 4px; overflow: hidden; }
   .ns-bar { height: 100%; border-radius: 4px; }
-  .ns-bar.g1 { background: var(--good); }
-  .ns-bar.g2 { background: #48761c; }
-  .ns-bar.g3 { background: var(--mid); }
-  .ns-bar.g4 { background: #a05a12; }
-  .ns-bar.g5 { background: var(--bad); }
-  .ns-bar.g6 { background: #8f1f1f; }
+  .ns-bar.g1 { background: var(--g1-ink); }
+  .ns-bar.g2 { background: var(--g2-ink); }
+  .ns-bar.g3 { background: var(--g3-ink); }
+  .ns-bar.g4 { background: var(--g4-ink); }
+  .ns-bar.g5 { background: var(--g5-ink); }
+  .ns-bar.g6 { background: var(--g6-ink); }
   .ns-count { flex: none; width: 34px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 0.82rem; }
   .ns-total { margin-top: 4px; }
 
@@ -434,6 +569,8 @@
   }
 
   dialog {
+    background: var(--surface);
+    color: var(--ink);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     max-width: 560px;
@@ -443,15 +580,12 @@
   }
   dialog::backdrop { background: rgba(15,18,24,0.4); }
 
-  .leistung-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 4px;
-    border-bottom: 1px solid var(--line);
-    flex-wrap: wrap;
-  }
-  .leistung-item:last-child { border-bottom: none; }
+  /* Leistungen als Tabelle: Titel und Angaben stehen spaltengenau untereinander */
+  table.leistungen-tabelle th, table.leistungen-tabelle td { white-space: nowrap; }
+  table.leistungen-tabelle td { vertical-align: middle; }
+  table.leistungen-tabelle td:nth-child(2) { width: 100%; white-space: normal; }
+  table.leistungen-tabelle .l-aktionen { text-align: right; }
+  table.leistungen-tabelle .l-aktionen button + button { margin-left: 6px; }
   .typ-badge {
     font-size: 0.72rem;
     font-weight: 700;
@@ -523,12 +657,12 @@
     white-space: nowrap;
   }
   .undo-toast button:hover { border-color: var(--accent); color: #fff; }
-  .undo-toast button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .undo-toast button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .undo-toast button.primary:hover { background: var(--accent-dunkel); }
   .update-banner {
     display: none;
     background: var(--accent);
-    color: #fff;
+    color: var(--accent-ink);
     padding: 8px 18px;
     align-items: center;
     gap: 12px;
@@ -546,12 +680,27 @@
     .card { animation: fade 0.15s ease-out; }
     @keyframes fade { from { opacity: 0.6; } to { opacity: 1; } }
   }
+  /* ---------- Dark-Mode-Feinschliff ---------- */
+  /* Nur bildschirmwirksam (siehe @media screen oben) — beim Drucken greift automatisch
+     wieder das Hell-Design aus dem :root oben, ganz ohne separaten Reset-Block. */
+  @media screen {
+    /* Kopfzeile vom fast gleichfarbigen Klassen-Tab-Band absetzen */
+    :root[data-theme="dark"] header { border-bottom: 1px solid rgba(255,255,255,0.06); }
+    /* update-banner-Button ist bewusst immer weiß; accent-dunkel ist fürs Dark-Design als
+       heller Text auf dunklem Grund gedacht und braucht hier eine eigene, feste Farbe */
+    :root[data-theme="dark"] .update-banner button { color: #2c50ad; }
+    :root[data-theme="dark"] .update-banner button:hover { background: #dbe5fb; }
+    /* Toast heller als der Seitengrund, sonst geht er im Dunkeln unter */
+    :root[data-theme="dark"] .undo-toast { background: #242a37; border: 1px solid #3a4150; }
+    :root[data-theme="dark"] dialog::backdrop { background: rgba(0,0,0,0.6); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+  }
+
   .print-only { display: none; }
   @media print {
     header, nav.klassen, nav.views, .footerbar, .update-banner, .undo-toast, #exportBar { display: none !important; }
     body { background: #fff; }
     main { padding: 0; }
-    .card { border: none; padding: 0; margin-bottom: 0; }
+    .card { border: none; padding: 0; margin-bottom: 0; box-shadow: none; }
     .print-only { display: block; margin-bottom: 12px; }
     table { font-size: 10px; }
     /* Auf Papier drucken Browser Zellhintergründe (HJ-Farbbänder) meist nicht — daher volles dezentes Raster für die Spaltentrennung */
@@ -579,6 +728,7 @@
   <h1><span class="akzent">Noten</span>buch</h1>
   <span class="file-status" id="fileStatus">Keine Datei geöffnet</span>
   <span class="spacer"></span>
+  <button id="btnTheme"></button>
   <button id="btnPasswort">🔓 Passwortschutz</button>
   <button id="btnOpen">Datei öffnen</button>
   <button id="btnSaveAs">Speichern unter …</button>
@@ -884,6 +1034,10 @@ function fmt(x, nk = 2) {
   if (x === null || x === undefined || isNaN(x)) return "–";
   return x.toFixed(nk).replace(".", ",");
 }
+// Faktor kompakt anzeigen: rundet auf 2 Nachkommastellen, ohne unnoetige Nullen (1 statt 1,00; 0,33 statt 0,3333333333333333)
+function fmtFaktor(x) {
+  return (Math.round(x * 100) / 100).toString().replace(".", ",");
+}
 function gradeClass(x, system) {
   if (x === null || x === undefined || isNaN(x)) return "";
   if (system === "np") {
@@ -1043,6 +1197,39 @@ function aktualisierePasswortButton() {
     b.title = "Passwortschutz für diese Datei einrichten";
   }
 }
+
+/* ---------- Dark Mode ---------- */
+// Ohne gespeicherte Wahl folgt die Anzeige dem Systemton. Die Aufloese-Logik lebt im
+// Bootstrap-Skript im <head> (window.notenbuchThemeAufloesen) und wird hier nur wiederverwendet.
+const THEME_KEY = window.notenbuchThemeKey;
+const systemDunkel = matchMedia("(prefers-color-scheme: dark)");
+const aktuellesTheme = window.notenbuchThemeAufloesen;
+
+function themeAnwenden() {
+  const t = aktuellesTheme();
+  document.documentElement.dataset.theme = t;
+  const b = document.getElementById("btnTheme");
+  if (t === "dark") {
+    b.textContent = "☀️ Helles Design";
+    b.title = "Zu hellem Design wechseln";
+  } else {
+    b.textContent = "🌙 Dunkles Design";
+    b.title = "Zu dunklem Design wechseln";
+  }
+}
+function themeUmschalten() {
+  try { localStorage.setItem(THEME_KEY, aktuellesTheme() === "dark" ? "light" : "dark"); } catch (e) {}
+  themeAnwenden();
+}
+// addEventListener auf MediaQueryList existiert erst ab Safari 14; aeltere Safari-Versionen
+// (die die App sonst per iOS-Fallback weiterhin unterstuetzt) kennen nur addListener.
+function systemThemeGeaendert() {
+  let gespeichert = null;
+  try { gespeichert = localStorage.getItem(THEME_KEY); } catch (e) {}
+  if (gespeichert !== "light" && gespeichert !== "dark") themeAnwenden();
+}
+if (systemDunkel.addEventListener) systemDunkel.addEventListener("change", systemThemeGeaendert);
+else if (systemDunkel.addListener) systemDunkel.addListener(systemThemeGeaendert);
 
 // Löst mit { stateObj, key } auf, oder verwirft mit "abgebrochen" wenn der Nutzer abbricht.
 function entsperrenDialog(envelope) {
@@ -1445,10 +1632,10 @@ function renderUebersicht(m, kl) {
     if (ls.length === 0) continue;
     const zielId = kategorieVon(kl, k.id);
     const label = k.faltetZu
-      ? `${k.label} (zählt zu ${kategorieLabel(kl, zielId)})`
-      : `${k.label} (${k.gewicht} %)`;
+      ? `${escapeHtml(k.label)} (zählt zu ${escapeHtml(kategorieLabel(kl, zielId))})`
+      : `${escapeHtml(k.label)} (${k.gewicht} %)`;
     kopf1 += `<th colspan="${ls.length}">${label}</th>`;
-    for (const l of ls) kopf2 += `<th style="background:${hjFarbe(l.halbjahr, true)}" title="${escapeHtml(l.titel)} · HJ${l.halbjahr} · Faktor ${l.gewicht}">${escapeHtml(kurz(l.titel))}<br><span style="font-weight:400;color:var(--muted)">HJ${l.halbjahr}</span></th>`;
+    for (const l of ls) kopf2 += `<th style="background:${hjFarbe(l.halbjahr, true)}" title="${escapeHtml(l.titel)} · HJ${l.halbjahr} · Faktor ${fmtFaktor(l.gewicht)}">${escapeHtml(kurz(l.titel))}<br><span style="font-weight:400;color:var(--muted)">HJ${l.halbjahr}</span></th>`;
   }
   kopf1 += kl.notensystem === "np"
     ? `<th rowspan='2' style="background:${hjFarbe(1, true)}">HJ 1<br><span style='font-weight:400'>Endnote (NP)</span></th>` +
@@ -1696,28 +1883,36 @@ function renderSchuelerAuszug(m, kl) {
 /* ---------- Leistungen ---------- */
 
 function renderLeistungen(m, kl) {
-  let items = "";
+  let zeilen = "";
   const sortiert = [...kl.leistungen].sort((a, b) => (a.datum || "").localeCompare(b.datum || ""));
   for (const l of sortiert) {
     const anz = kl.schueler.filter(s => leistungsNote(l, s.id) !== null).length;
-    items += `<div class="leistung-item">
-      <span class="typ-badge">${kategorieLabel(kl, l.typ)}</span>
-      <strong>${escapeHtml(l.titel)}</strong>
-      <span class="hint">HJ${l.halbjahr} · ${l.datum || "ohne Datum"} · Faktor ${l.gewicht} · ${
-        l.modus === "punkte" ? maxVPvon(l) + " VP"
-        : l.modus === "diktat" ? (l.wortzahl || 0) + " Wörter"
-        : l.modus === "tendenz" ? ("Tendenzen" + (l.uebernehmen ? "" : " · nur Dokumentation"))
-        : "direkte Note"
-      } · ${anz}/${kl.schueler.length} erfasst</span>
-      <span class="spacer"></span>
-      <button class="small primary" data-open="${l.id}">Noten eingeben</button>
-      <button class="small" data-edit="${l.id}">Bearbeiten</button>
-      <button class="small danger" data-del="${l.id}">Löschen</button>
-    </div>`;
+    const eingabe = l.modus === "punkte" ? maxVPvon(l) + " VP"
+      : l.modus === "diktat" ? (l.wortzahl || 0) + " Wörter"
+      : l.modus === "tendenz" ? ("Tendenzen" + (l.uebernehmen ? "" : " · nur Doku"))
+      : "direkte Note";
+    zeilen += `<tr>
+      <td><span class="typ-badge">${escapeHtml(kategorieLabel(kl, l.typ))}</span></td>
+      <td><strong>${escapeHtml(l.titel)}</strong></td>
+      <td class="num">HJ${l.halbjahr}</td>
+      <td>${l.datum || "–"}</td>
+      <td class="num">${fmtFaktor(l.gewicht)}</td>
+      <td>${eingabe}</td>
+      <td class="num">${anz}/${kl.schueler.length}</td>
+      <td class="l-aktionen">
+        <button class="small primary" data-open="${l.id}">Noten eingeben</button>
+        <button class="small" data-edit="${l.id}">Bearbeiten</button>
+        <button class="small danger" data-del="${l.id}">Löschen</button>
+      </td>
+    </tr>`;
   }
+  const tabelle = `<div class="table-scroll"><table class="leistungen-tabelle">
+    <thead><tr><th>Art</th><th>Titel</th><th class="num">HJ</th><th>Datum</th><th class="num">Faktor</th><th>Eingabe</th><th class="num">Erfasst</th><th></th></tr></thead>
+    <tbody>${zeilen}</tbody>
+  </table></div>`;
   m.innerHTML = `<div class="card">
     <h2>Leistungen</h2>
-    ${items || "<p class='hint'>Noch keine Leistungen angelegt.</p>"}
+    ${zeilen ? tabelle : "<p class='hint'>Noch keine Leistungen angelegt.</p>"}
     <p style="margin-top:12px"><button class="primary" id="btnNeueLeistung">+ Neue Leistung</button></p>
   </div>`;
   $("#btnNeueLeistung").onclick = () => leistungDialog(null);
@@ -1869,7 +2064,7 @@ function renderLeistungEingabe(m, kl) {
   let html = `<div class="card">
     <div class="row" style="align-items:center">
       <button class="small" id="btnZurueck">← Zurück</button>
-      <h2 style="margin:0">${escapeHtml(l.titel)} <span class="typ-badge">${kategorieLabel(kl, l.typ)}</span> <span class="hint">HJ${l.halbjahr} · Faktor ${l.gewicht}</span></h2>
+      <h2 style="margin:0">${escapeHtml(l.titel)} <span class="typ-badge">${escapeHtml(kategorieLabel(kl, l.typ))}</span> <span class="hint">HJ${l.halbjahr} · Faktor ${fmtFaktor(l.gewicht)}</span></h2>
     </div>
     ${(() => {
       const eigeneKat = (kl.kategorien || []).find(k => k.id === l.typ);
@@ -2279,22 +2474,27 @@ function renderLeistungEingabe(m, kl) {
 
 function renderSchueler(m, kl) {
   let rows = kl.schueler.map((s, i) => {
-    const anzahl = s.notizen.length;
     const notizenSortiert = [...s.notizen].sort((a, b) => b.datum.localeCompare(a.datum));
-    const vorschau = notizenSortiert.length ? `<tr class="notiz-vorschau-zeile">
-      <td></td><td colspan="3" data-snotiz="${s.id}" title="Notizen bearbeiten"><ul class="notizen-vorschau">
-        ${notizenSortiert.map(n => `<li><span class="notiz-datum">${n.datum || "–"}</span>${n.druckbar ? "" : ' <span class="hint">(nur intern)</span>'}: ${escapeHtml(n.text).replace(/\n/g, "<br>")}</li>`).join("")}
-      </ul></td></tr>` : "";
+    const vorschauZeilen = notizenSortiert.slice(0, 2)
+      .map(n => `<div class="s-notiz-zeile"><span class="notiz-datum">${n.datum || "–"}</span><span>${escapeHtml(n.text).replace(/\n/g, " ")}</span></div>`)
+      .join("");
+    const notizenZelle = notizenSortiert.length
+      ? `<div class="s-notiz-vorschau" data-snotiz="${s.id}" title="Notizen bearbeiten">
+          ${vorschauZeilen}
+          ${notizenSortiert.length > 2 ? `<span class="s-notiz-mehr">+${notizenSortiert.length - 2} weitere</span>` : ""}
+        </div>`
+      : `<button class="small action" data-snotiz="${s.id}">+ Notiz</button>`;
     return `<tr>
     <td class="num">${i + 1}</td>
+    <td class="s-c-del"><button class="small icon-btn danger" data-sdel="${s.id}" title="${escapeHtml(s.name)} aus der Klasse entfernen" aria-label="${escapeHtml(s.name)} entfernen">🗑</button></td>
     <td><input data-sname="${s.id}" value="${escapeHtml(s.name)}" style="width:100%;border-color:transparent;background:transparent"></td>
-    <td><button class="small" data-snotiz="${s.id}">📝 Notizen${anzahl ? ` (${anzahl})` : ""}</button></td>
-    <td><button class="small danger" data-sdel="${s.id}" title="${escapeHtml(s.name)} aus der Klasse entfernen">🗑 Schüler entfernen</button></td></tr>${vorschau}`;
+    <td>${notizenZelle}</td></tr>`;
   }).join("");
   m.innerHTML = `<div class="card">
     <h2>Schülerliste (${kl.schueler.length})</h2>
-    <div class="table-scroll"><table style="max-width:720px">
-      <tr><th style="width:36px">#</th><th>Name</th><th style="width:150px"></th><th style="width:150px"></th></tr>${rows}
+    <div class="table-scroll"><table class="schueler-tabelle">
+      <colgroup><col style="width:36px"><col style="width:40px"><col style="width:30%"><col></colgroup>
+      <tr><th>#</th><th></th><th>Name</th><th>Notizen</th></tr>${rows}
     </table></div>
     <h3>Hinzufügen</h3>
     <p class="hint">Ein Name pro Zeile, z. B. „Müller, Anna". Die Liste wird alphabetisch sortiert.</p>
@@ -2423,7 +2623,7 @@ function kategorieZeile(kl, k) {
       <span data-kat-gewicht-wrap="${k.id}" style="${k.faltetZu ? "display:none" : ""}"><input type="number" min="0" max="100" data-kat-gewicht="${k.id}" value="${k.gewicht ?? 0}"> %</span>
       ${k.faltetZu ? `<span class="kat-dash">—</span>` : ""}
     </td>
-    <td class="kat-c-del"><button class="small danger" data-kat-del="${k.id}" title="Kategorie „${escapeHtml(k.label)}" löschen" aria-label="Kategorie löschen">✕</button></td>
+    <td class="kat-c-del"><button class="small danger" data-kat-del="${k.id}" title="Kategorie ${escapeHtml(k.label)} löschen" aria-label="Kategorie löschen">✕</button></td>
   </tr>`;
   const info = (k.faltetZu && k.id !== "gfs") ? `<tr class="kat-info-zeile"><td colspan="5">${infoDetails("kat-falt-" + k.id,
     `Faktor je „${escapeHtml(k.label)}" auf <strong>1 ÷ Anzahl geplanter Leistungen</strong> setzen (z. B. 0,25 bei 4)`,
@@ -2634,6 +2834,8 @@ function kurz(s) { return s.length > 14 ? s.slice(0, 13) + "…" : s; }
 document.getElementById("btnOpen").onclick = oeffnen;
 document.getElementById("btnSave").onclick = () => speichern(false);
 document.getElementById("btnSaveAs").onclick = () => speichern(true);
+document.getElementById("btnTheme").onclick = themeUmschalten;
+themeAnwenden();
 document.getElementById("btnPasswort").onclick = passwortDialog;
 aktualisierePasswortButton();
 document.getElementById("btnUndo").onclick = rueckgaengig;
