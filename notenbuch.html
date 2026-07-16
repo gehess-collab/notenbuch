@@ -477,6 +477,8 @@
     color: var(--bad); border-color: var(--bad); background: var(--danger-bg);
   }
   tr.avg-row:hover td { background: var(--avg-row-bg); }
+  tr.tend-verlauf-zeile td { border-top: none; padding-top: 0; padding-bottom: 8px; }
+  .tend-verlauf-text { font-size: 0.78rem; color: var(--muted); }
 
   /* ---------- Schülerliste ---------- */
   table.schueler-tabelle { table-layout: fixed; }
@@ -960,6 +962,8 @@ function tendenzSkalaStandard(system) {
     ? { "++": 14, "+": 11, "0": 8, "-": 5, "--": 2 }
     : { "++": 1, "+": 2, "0": 3, "-": 4, "--": 5 };
 }
+const TENDENZ_REIHENFOLGE = ["++", "+", "0", "-", "--"];
+const TENDENZ_BESCHRIFTUNG = { "++": "++", "+": "+", "0": "0", "-": "−", "--": "−−" };
 
 function leistungsNote(l, sid) {
   const e = l.noten[sid];
@@ -1813,12 +1817,19 @@ function renderSchuelerAuszug(m, kl) {
     for (const l of leist) {
       const n = leistungsNote(l, s.id);
       const eigeneKat = kategorieLabel(kl, l.typ);
+      const istTendenz = l.modus === "tendenz";
+      const eintraege = istTendenz ? ((l.noten[s.id] && l.noten[s.id].eintraege) || []) : [];
       zeilen += `<tr>
         <td>${escapeHtml(l.titel)}${eigeneKat !== top.label ? ` <span class="hint">(${escapeHtml(eigeneKat)})</span>` : ""}</td>
         <td class="num">HJ${l.halbjahr}</td>
-        <td>${l.datum || "–"}</td>
+        <td>${istTendenz ? "–" : (l.datum || "–")}</td>
         <td class="num" style="background:${hjFarbe(l.halbjahr)}">${n === null ? "–" : chip(n, l.system === "np" ? 0 : 2, false, l.system)}</td>
       </tr>`;
+      if (eintraege.length) {
+        const verlauf = [...eintraege].sort((a, b) => a.datum.localeCompare(b.datum))
+          .map(x => `${x.datum} ${TENDENZ_BESCHRIFTUNG[x.wert] ?? x.wert}`).join(" · ");
+        zeilen += `<tr class="tend-verlauf-zeile"><td colspan="4"><span class="tend-verlauf-text">Verlauf: ${escapeHtml(verlauf)}</span></td></tr>`;
+      }
     }
     const schnitt1 = kategorieSchnitt(kl, s.id, top.id, 1);
     const schnitt2 = kategorieSchnitt(kl, s.id, top.id, 2);
@@ -2208,8 +2219,8 @@ function renderLeistungEingabe(m, kl) {
     /* Mündliche Tendenzen: pro Tag eine Wertung ++ … -- je Schüler, gemittelt zur Note */
     const skala = l.tendenzSkala || tendenzSkalaStandard(l.system);
     const npModus = l.system === "np";
-    const werteReihenfolge = ["++", "+", "0", "-", "--"];
-    const beschriftung = { "++": "++", "+": "+", "0": "0", "-": "−", "--": "−−" };
+    const werteReihenfolge = TENDENZ_REIHENFOLGE;
+    const beschriftung = TENDENZ_BESCHRIFTUNG;
 
     html += `<p class="info">${l.uebernehmen
       ? "Diese Leistung fließt automatisch als mündliche Note in die Berechnung ein."
