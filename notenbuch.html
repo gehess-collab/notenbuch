@@ -661,6 +661,22 @@
   .undo-toast button:hover { border-color: var(--accent); color: #fff; }
   .undo-toast button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .undo-toast button.primary:hover { background: var(--accent-dunkel); }
+  .speicher-toast {
+    position: fixed;
+    right: 20px;
+    bottom: 46px;
+    z-index: 30;
+    background: var(--kopf-bg);
+    color: var(--kopf-ink);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+    font-size: 0.85rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .speicher-toast.zeigen { opacity: 1; }
   .update-banner {
     display: none;
     background: var(--accent);
@@ -751,6 +767,8 @@
   <span>Alle Daten liegen ausschließlich in deiner lokalen Datei.</span>
   <span id="autosaveInfo"></span>
 </div>
+
+<div class="speicher-toast" id="speicherToast">✓ Gespeichert</div>
 
 <div class="undo-toast" id="undoToast" style="display:none">
   <span id="undoText"></span>
@@ -1445,6 +1463,14 @@ async function speichern(alsNeu = false) {
       setDirty(false);
     }
   } catch (e) { if (e && e.name !== "AbortError") alert("Speichern fehlgeschlagen."); }
+}
+
+let speicherToastTimer = null;
+function zeigeSpeicherToast() {
+  const el = document.getElementById("speicherToast");
+  el.classList.add("zeigen");
+  clearTimeout(speicherToastTimer);
+  speicherToastTimer = setTimeout(() => el.classList.remove("zeigen"), 1800);
 }
 
 let autosaveTimer = null;
@@ -2843,8 +2869,8 @@ function kurz(s) { return s.length > 14 ? s.slice(0, 13) + "…" : s; }
 /* ---------- Start ---------- */
 
 document.getElementById("btnOpen").onclick = oeffnen;
-document.getElementById("btnSave").onclick = () => speichern(false);
-document.getElementById("btnSaveAs").onclick = () => speichern(true);
+document.getElementById("btnSave").onclick = async () => { await speichern(false); if (!dirty) zeigeSpeicherToast(); };
+document.getElementById("btnSaveAs").onclick = async () => { await speichern(true); if (!dirty) zeigeSpeicherToast(); };
 document.getElementById("btnTheme").onclick = themeUmschalten;
 themeAnwenden();
 document.getElementById("btnPasswort").onclick = passwortDialog;
