@@ -253,6 +253,20 @@
     font-weight: 700;
     box-shadow: 0 1px 4px var(--accent-glow);
   }
+  .klassen-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+  }
+  .klassen-tab button.klassen-move {
+    padding: 3px 5px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    background: transparent;
+    border-color: transparent;
+  }
+  .klassen-tab button.klassen-move:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .klassen-tab button.klassen-move:disabled { opacity: 0.25; cursor: default; }
   nav.views {
     display: flex;
     gap: 2px;
@@ -1540,16 +1554,46 @@ function renderAll() {
   renderMain();
 }
 
+function verschiebeKlasse(index, richtung) {
+  const ziel = index + richtung;
+  if (ziel < 0 || ziel >= state.klassen.length) return;
+  const [k] = state.klassen.splice(index, 1);
+  state.klassen.splice(ziel, 0, k);
+  markiereAenderung();
+  renderAll();
+}
+
 function renderKlassenNav() {
   const nav = $("#klassenNav");
   nav.innerHTML = "";
-  for (const k of state.klassen) {
+  state.klassen.forEach((k, i) => {
+    const gruppe = document.createElement("span");
+    gruppe.className = "klassen-tab";
+
+    const links = document.createElement("button");
+    links.className = "small klassen-move";
+    links.textContent = "◂";
+    links.title = "Klasse nach links verschieben";
+    links.disabled = i === 0;
+    links.onclick = () => verschiebeKlasse(i, -1);
+    gruppe.appendChild(links);
+
     const b = document.createElement("button");
     b.className = "tab" + (k.id === aktiveKlasse ? " active" : "");
     b.textContent = `${k.name} · ${k.fach}${k.notensystem === "np" ? " (NP)" : ""}`;
     b.onclick = () => { aktiveKlasse = k.id; offeneLeistung = null; offenerAuszugSid = null; renderAll(); };
-    nav.appendChild(b);
-  }
+    gruppe.appendChild(b);
+
+    const rechts = document.createElement("button");
+    rechts.className = "small klassen-move";
+    rechts.textContent = "▸";
+    rechts.title = "Klasse nach rechts verschieben";
+    rechts.disabled = i === state.klassen.length - 1;
+    rechts.onclick = () => verschiebeKlasse(i, 1);
+    gruppe.appendChild(rechts);
+
+    nav.appendChild(gruppe);
+  });
   const add = document.createElement("button");
   add.className = "small";
   add.textContent = "+ Klasse";
