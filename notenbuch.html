@@ -2638,7 +2638,7 @@ function kategorieZeile(kl, k) {
   </tr>`;
   const info = (k.faltetZu && k.id !== "gfs") ? `<tr class="kat-info-zeile"><td colspan="5">${infoDetails("kat-falt-" + k.id,
     `Faktor je „${escapeHtml(k.label)}" auf <strong>1 ÷ Anzahl geplanter Leistungen</strong> setzen (z. B. 0,25 bei 4)`,
-    `<p>Der Faktor wird im Feld „Faktor" beim Anlegen der Leistung gesetzt. Beispiel bei 4 geplanten „${escapeHtml(k.label)}"-Leistungen mit Faktor 0,25: Sind bei einem Schüler alle 4 erfasst, zählt der „${escapeHtml(k.label)}"-Block wie <strong>eine</strong> volle „${escapeHtml(zielLabel)}" (Gewicht 1,0). Fehlt eine, sind es 3 × 0,25 = 0,75 — etwas weniger, aber kein Fehlversuch. Beim Standard-Faktor 1 zählen 4 „${escapeHtml(k.label)}"-Leistungen dagegen wie 4 volle „${escapeHtml(zielLabel)}".</p>`,
+    `<p>Der Faktor wird im Feld „Faktor" beim Anlegen der Leistung gesetzt. Beispiel bei 4 geplanten „${escapeHtml(k.label)}"-Leistungen mit Faktor 0,25: Sind bei einem Schüler alle 4 erfasst, zählt der „${escapeHtml(k.label)}"-Block wie <strong>eine</strong> volle „${escapeHtml(zielLabel)}" (Gewicht 1,0). Fehlt eine, sind es 3 × 0,25 = 0,75 — etwas weniger, aber kein Fehlversuch. Beim Standard-Faktor 1 zählt dagegen jede einzelne „${escapeHtml(k.label)}"-Leistung schon für sich wie eine volle „${escapeHtml(zielLabel)}" — bei 4 Leistungen macht das zusammen das Vierfache einer „${escapeHtml(zielLabel)}" aus.</p>`,
     ``, "warn")}</td></tr>` : "";
   return zeile + info;
 }
@@ -2667,6 +2667,22 @@ function renderEinstellungen(m, kl) {
     <span>Grenzfälle x,5<b>orange markiert</b></span>
   </div>`;
   m.innerHTML = `
+  <div class="card">
+    <h2>Klasse</h2>
+    <div class="row">
+      <div><label>Bezeichnung</label><input id="kName" value="${escapeHtml(kl.name)}"></div>
+      <div><label>Fach</label><input id="kFach" value="${escapeHtml(kl.fach)}"></div>
+      <div><label>Schuljahr</label><input id="kSj" value="${escapeHtml(kl.schuljahr)}"></div>
+    </div>
+    <div class="danger-zone">
+      <div>
+        <strong>Klasse löschen</strong>
+        <span class="hint">Entfernt „${escapeHtml(kl.name)} ${escapeHtml(kl.fach)}" mit allen Schülern, Leistungen und Noten. Nicht umkehrbar.</span>
+      </div>
+      <button class="danger" id="kDel">Klasse löschen</button>
+    </div>
+  </div>
+
   <div class="card">
     <h2>Kategorien &amp; Gewichte</h2>
     ${gewichtungsBalken(eigeneAktive, summe)}
@@ -2697,22 +2713,6 @@ function renderEinstellungen(m, kl) {
     <p class="hint">Das Notensystem wird bei Anlage der Klasse festgelegt und ist danach nicht mehr änderbar — für ein anderes System eine neue Klasse anlegen. ${istNP
       ? "In der Kursstufe ist jedes Halbjahr eine eigenständige Endnote; es gibt keine Jahresnote."
       : "Die Jahresnote wird aus allen Leistungen des ganzen Schuljahres gemeinsam berechnet, nicht aus den beiden Halbjahresnoten."} Gerundet wird kaufmännisch; Grenzfälle um x,5 werden in der Übersicht orange markiert und lassen sich dort pädagogisch festlegen.</p>
-  </div>
-
-  <div class="card">
-    <h2>Klasse</h2>
-    <div class="row">
-      <div><label>Bezeichnung</label><input id="kName" value="${escapeHtml(kl.name)}"></div>
-      <div><label>Fach</label><input id="kFach" value="${escapeHtml(kl.fach)}"></div>
-      <div><label>Schuljahr</label><input id="kSj" value="${escapeHtml(kl.schuljahr)}"></div>
-    </div>
-    <div class="danger-zone">
-      <div>
-        <strong>Klasse löschen</strong>
-        <span class="hint">Entfernt „${escapeHtml(kl.name)} ${escapeHtml(kl.fach)}" mit allen Schülern, Leistungen und Noten. Nicht umkehrbar.</span>
-      </div>
-      <button class="danger" id="kDel">Klasse löschen</button>
-    </div>
   </div>`;
   bindInfoDetails(m);
 
